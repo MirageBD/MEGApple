@@ -259,7 +259,6 @@ irq1
 		;lda #$00
 		;sta samplecount
 
-/*
 		lda sampletrigger
 		beq :+
 		jsr rbGetSample
@@ -289,7 +288,6 @@ irq1
 		jsr mpPlaySample
 		
 :
-*/
 
 		pla
 		asl $d019

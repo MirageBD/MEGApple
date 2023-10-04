@@ -60,7 +60,7 @@ $(EXE_DIR)/boot.prg.addr.mc: $(BINFILES) $(EXE_DIR)/boot.o Linkfile
 	$(MEGAADDRESS) $(EXE_DIR)/boot.prg 00002100
 	$(MEGACRUNCH) -e 00002100 $(EXE_DIR)/boot.prg.addr
 
-$(EXE_DIR)/megapple.d81: $(EXE_DIR)/boot.prg.addr.mc $(BIN_DIR)/alldata.bin
+$(EXE_DIR)/megapple.d81: $(EXE_DIR)/boot.prg.addr.mc
 	$(RM) $@
 	$(CC1541) -n "megapple" -i " 2023" -d 19 -v\
 	 \
