@@ -263,35 +263,30 @@ loop
 irq1
 		pha
 
-		inc $d020
+		lda framelo
+		and #1
+		beq evenframe
+
+		jsr endirq
+
+evenframe
+
+		sta $d020
 		DMA_RUN_JOB clearcharmemjob
-		dec $d020
 
 		lda #$02
 		sta $d020
-
 		jsr ploteorchars
 
 		lda #$03
 		sta $d020
-
 		jsr eorfill
+		
+		;lda #$01
+		;sta $d020
 		;jsr sdc_readsector
-
-/*
-		ldx #$00
-:		lda sdc_sectorbuffer,x
-		and #$03
-		sta $d020
-		inx
-		bne :-
-*/
-
-		lda #$01
-		sta $d020
-
-		;lda #$00
-		;sta samplecount
+		;lda #$02
+		;sta $d020
 
 		lda sampletrigger
 		beq :+
@@ -301,9 +296,7 @@ irq1
 :		lda #$00
 		sta rbChannel
 		jsr rbUpdate
-:
-
-		lda sampletrigger
+:		lda sampletrigger
 		beq :+
 		lda #$00
 		sta sampletrigger
@@ -320,14 +313,24 @@ irq1
 		lda #$03
 		sta mpChannel
 		jsr mpPlaySample
-		
 :
+		lda #$00
+		sta $d020
+
+		lda #$01
+		sta $d020
+		DMA_RUN_JOB copycharmemjob
 
 		lda #$00
 		sta $d020
 
-		DMA_RUN_JOB copycharmemjob
 
+endirq
+		inc framelo
+		lda framelo
+		bne :+
+		inc framehi
+:		
 		pla
 		asl $d019
 		rti
