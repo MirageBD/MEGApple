@@ -265,28 +265,29 @@ irq1
 
 		lda framelo
 		and #1
+
 		beq evenframe
 
-		jsr endirq
-
-evenframe
-
-		sta $d020
-		DMA_RUN_JOB clearcharmemjob
-
-		lda #$02
-		sta $d020
-		jsr ploteorchars
-
-		lda #$03
-		sta $d020
+		;lda #$03
+		;sta $d020
 		jsr eorfill
 		
 		;lda #$01
 		;sta $d020
-		;jsr sdc_readsector
+		DMA_RUN_JOB copycharmemjob
+
+		jmp endirq
+
+evenframe
+
+		;sta $d020
+		DMA_RUN_JOB clearcharmemjob
+
 		;lda #$02
 		;sta $d020
+		jsr ploteorchars
+
+endirq
 
 		lda sampletrigger
 		beq :+
@@ -317,15 +318,6 @@ evenframe
 		lda #$00
 		sta $d020
 
-		lda #$01
-		sta $d020
-		DMA_RUN_JOB copycharmemjob
-
-		lda #$00
-		sta $d020
-
-
-endirq
 		inc framelo
 		lda framelo
 		bne :+
@@ -337,57 +329,72 @@ endirq
 
 ; ----------------------------------------------------------------------------------------------------
 
+cnt3	.byte 0
+
+incme
+		lda hrmpf1+2
+		cmp #>sdc_sectorbuffer
+		bne wrapme
+		inc hrmpf1+2
+		inc hrmpf2+2
+		inc hrmpf3+2
+		rts
+
+wrapme
+		lda #$35
+		sta $01
+		jsr sdc_readsector
+		lda #$34
+		sta $01
+		lda #>sdc_sectorbuffer
+		sta hrmpf1+2
+		sta hrmpf2+2
+		sta hrmpf3+2
+		rts
+
 ploteorchars
 
 		lda #$34
 		sta $01
 
-		lda #<(framedata+0)
-		sta hrmpf1+1
-		lda #>(framedata+0)
-		sta hrmpf1+2
-		lda #<(framedata+1)
-		sta hrmpf2+1
-		lda #>(framedata+1)
-		sta hrmpf2+2
-		lda #<(framedata+2)
-		sta hrmpf3+1
-		lda #>(framedata+2)
-		sta hrmpf3+2
-
-		clc
+		ldx cnt3
 
 plotloop
-hrmpf1	lda framedata+0
+
+hrmpf1	lda sdc_sectorbuffer,x
 		sta storechar+1
-hrmpf2	lda framedata+1
+		inx
+		bne hrmpf2
+		jsr incme
+hrmpf2	lda sdc_sectorbuffer,x
 		beq plotloopend
 		sta storechar+2
-hrmpf3	lda framedata+2
+		inx
+		bne hrmpf3
+		jsr incme
+hrmpf3	lda sdc_sectorbuffer,x
 		sta loadchar+1
+		inx
+		bne hrmpf4
+		jsr incme
+hrmpf4
+
 loadchar	lda #$00
 storechar	sta $b00b
-		lda hrmpf1+1
-		adc #$03
-		sta hrmpf1+1
-		bcc :+
-		inc hrmpf1+2
-		clc
-:		lda hrmpf2+1
-		adc #$03
-		sta hrmpf2+1
-		bcc :+
-		inc hrmpf2+2
-		clc
-:		lda hrmpf3+1
-		adc #$03
-		sta hrmpf3+1
-		bcc :+
-		inc hrmpf3+2
-		clc
-:		bra plotloop
+
+		jmp plotloop
 
 plotloopend
+
+		inx
+		bne :+
+		jsr incme
+:		inx
+		bne :+
+		jsr incme
+:		
+
+		stx cnt3
 
 		lda #$35
 		sta $01
