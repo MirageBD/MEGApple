@@ -1,6 +1,8 @@
-.define palette			$9c00							;                   $0300
-.define screen1			$a000							; 80*25*2 =  4000 = $0fa0
-.define screenchars1	$b000							; 80*25*8 = 16000 = $3e80
+.define palette			$9900							;                   $0300
+.define screen1			$9c00							; 80*30*2 =  4800 = $12c0
+.define screenchars1	$b000							; 80*30*8 = 19200 = $4b00
+
+.define screenchars0	$10000							; 80*30*8 = 19200 = $4b00
 
 .define zpcol			$90
 .define zpscr			$94
@@ -12,7 +14,17 @@
 
 entry_main
 
-		SD_LOAD_ATTICRAM $000000, "samples.bin"
+		SD_LOAD_ATTICRAM $000000, "samples.bin"			; load samples from SD
+
+		ldx #$00										; set filename for video frames, open file and get first sector
+:		lda framefile,x
+		sta sdc_transferbuffer,x
+		inx
+		cpx #13
+		bne :-
+
+		jsr sdc_openfile
+		jsr sdc_readsector
 
 		sei
 
@@ -56,6 +68,19 @@ entry_main
 		lda #$00
 		sta $d059
 
+		lda #$12+4*8									; Y Position Where Character Display Starts ($D04E LSB, 0–3 of $D04F MSB)
+		sta $d04e
+
+		lda #30											; set number of rows
+		sta $d07b
+
+		lda #6*8+2										; reposition start of top border to what's juuuuust visible on my monitor
+		sta $d048
+		lda #$08										; reposition start of bottom border to what's juuuuust visible on my monitor
+		sta $d04a
+		lda #$02
+		sta $d04b
+
 		lda #$50										; set TEXTXPOS to same as SDBDRWDLSB
 		sta $d04c
 
@@ -76,7 +101,6 @@ entry_main
 		sta [zpcol],z
 
 		DMA_RUN_JOB clearcolorramjob					; then copy source to dest+2 to repeat the two bytes over and over
-
 		DMA_RUN_JOB clearcharmemjob
 
 		lda #$00										; fill screenmem linearly vertically
@@ -153,11 +177,11 @@ endscreenplot1
 		lda #>.hiword(screen1)
 		sta $d063
 
-		lda #<.loword(screenchars1)						; set pointer to chargen
+		lda #<.loword(screenchars0)						; set pointer to chargen
 		sta $d068
-		lda #>.loword(screenchars1)
+		lda #>.loword(screenchars0)
 		sta $d069
-		lda #<.hiword(screenchars1)
+		lda #<.hiword(screenchars0)
 		sta $d06a
 
 		lda #$00
@@ -252,8 +276,18 @@ irq1
 		sta $d020
 
 		jsr eorfill
+		;jsr sdc_readsector
 
-		lda #$00
+/*
+		ldx #$00
+:		lda sdc_sectorbuffer,x
+		and #$03
+		sta $d020
+		inx
+		bne :-
+*/
+
+		lda #$01
 		sta $d020
 
 		;lda #$00
@@ -289,6 +323,11 @@ irq1
 		
 :
 
+		lda #$00
+		sta $d020
+
+		DMA_RUN_JOB copycharmemjob
+
 		pla
 		asl $d019
 		rti
@@ -313,6 +352,8 @@ ploteorchars
 		lda #>(framedata+2)
 		sta hrmpf3+2
 
+		clc
+
 plotloop
 hrmpf1	lda framedata+0
 		sta storechar+1
@@ -323,28 +364,25 @@ hrmpf3	lda framedata+2
 		sta loadchar+1
 loadchar	lda #$00
 storechar	sta $b00b
-		clc
 		lda hrmpf1+1
 		adc #$03
 		sta hrmpf1+1
-		lda hrmpf1+2
-		adc #$00
-		sta hrmpf1+2
+		bcc :+
+		inc hrmpf1+2
 		clc
-		lda hrmpf2+1
+:		lda hrmpf2+1
 		adc #$03
 		sta hrmpf2+1
-		lda hrmpf2+2
-		adc #$00
-		sta hrmpf2+2
+		bcc :+
+		inc hrmpf2+2
 		clc
-		lda hrmpf3+1
+:		lda hrmpf3+1
 		adc #$03
 		sta hrmpf3+1
-		lda hrmpf3+2
-		adc #$00
-		sta hrmpf3+2
-		jmp plotloop
+		bcc :+
+		inc hrmpf3+2
+		clc
+:		bra plotloop
 
 plotloopend
 
@@ -357,55 +395,57 @@ plotloopend
 
 eorfill
 
+		lda #$34
+		sta $01
+
 		lda #<.loword(screenchars1)
 		sta zpchars+0
 		lda #>.loword(screenchars1)
 		sta zpchars+1
-		lda #<.hiword(screenchars1)
-		sta zpchars+2
-		lda #>.hiword(screenchars1)
-		sta zpchars+3
 
-		ldx #$00
+		ldx #$4b										; $4b, enough to eor fill bitmap that is 80*30*8 = $4b00
+
 		lda #$00										; initialize eor filler
 
-		ldz #$00
-:		eor [zpchars],z
-		sta [zpchars],z
-		inz
+		ldy #$00
+:		eor (zpchars),y
+		sta (zpchars),y
+		iny
 		bne :-
 		inc zpchars+1
-		inx
-		cpx #$4b										; $4b, enough to eor fill bitmap that is 80*30*8 = $4b00
-		bne :-
+		dex
+		bpl :-
+
+		lda #$35
+		sta $01
 
 		rts
 
 ; ----------------------------------------------------------------------------------------------------
 
 clearcolorramjob
-		.byte $0a										; Request format (f018a = 11 bytes (Command MSB is $00), f018b is 12 bytes (Extra Command MSB))
-		.byte $80,((SAFE_COLOR_RAM) >> 20)				; source megabyte
-		.byte $81, ((SAFE_COLOR_RAM) >> 20)				; dest megabyte
-		.byte $82, 0									; Source skip rate (256ths of bytes)
-		.byte $83, 1									; Source skip rate (whole bytes)
-		.byte $84, 0									; Destination skip rate (256ths of bytes)
-		.byte $85, 1									; Destination skip rate (whole bytes)
+				.byte $0a										; Request format (f018a = 11 bytes (Command MSB is $00), f018b is 12 bytes (Extra Command MSB))
+				.byte $80,((SAFE_COLOR_RAM) >> 20)				; source megabyte
+				.byte $81, ((SAFE_COLOR_RAM) >> 20)				; dest megabyte
+				.byte $82, 0									; Source skip rate (256ths of bytes)
+				.byte $83, 1									; Source skip rate (whole bytes)
+				.byte $84, 0									; Destination skip rate (256ths of bytes)
+				.byte $85, 1									; Destination skip rate (whole bytes)
 
-		.byte $00										; No more options
+				.byte $00										; No more options
 
-														; 11 byte DMA List structure starts here
-		.byte %00000000									; copy and last request
+																; 11 byte DMA List structure starts here
+				.byte %00000000									; copy and last request
 
-		.word 80*30*2-2									; Count LSB + Count MSB
+				.word 80*30*2-2									; Count LSB + Count MSB
 
-		.word ((SAFE_COLOR_RAM) & $ffff)				; Destination Address LSB + Destination Address MSB
-		.byte (((SAFE_COLOR_RAM) >> 16) & $0f)			; Destination Address BANK and FLAGS (copy to rbBaseMem)
+				.word ((SAFE_COLOR_RAM) & $ffff)				; Destination Address LSB + Destination Address MSB
+				.byte (((SAFE_COLOR_RAM) >> 16) & $0f)			; Destination Address BANK and FLAGS (copy to rbBaseMem)
 
-		.word ((SAFE_COLOR_RAM+2) & $ffff)				; Destination Address LSB + Destination Address MSB
-		.byte (((SAFE_COLOR_RAM+2) >> 16) & $0f)		; Destination Address BANK and FLAGS (copy to rbBaseMem)
+				.word ((SAFE_COLOR_RAM+2) & $ffff)				; Destination Address LSB + Destination Address MSB
+				.byte (((SAFE_COLOR_RAM+2) >> 16) & $0f)		; Destination Address BANK and FLAGS (copy to rbBaseMem)
 
-		.word $0000
+				.word $0000
 
 ; -------------------------------------------------------------------------------------------------
 
@@ -437,12 +477,43 @@ clearcharmemjob
 
 ; -------------------------------------------------------------------------------------------------
 
+copycharmemjob
+				.byte $0a										; Request format (f018a = 11 bytes (Command MSB is $00), f018b is 12 bytes (Extra Command MSB))
+				.byte $80, (screenchars1 >> 20)					; sourcebank
+				.byte $81, (screenchars0 >> 20)					; destbank
+				;.byte $84, $00									; Destination skip rate (256ths of bytes)
+				;.byte $85, $01									; Destination skip rate (whole bytes)
+
+				.byte $00										; No more options
+
+																; 11 byte DMA List structure starts here
+				.byte $00										; Copy and don't chain
+
+				.word 80*30*8									; Count LSB + Count MSB
+
+				.word ((screenchars1) & $ffff)					; Source Address LSB + Destination Address MSB
+				.byte ((screenchars1 >> 16) & $0f)				; Source Address BANK and FLAGS (copy to rbBaseMem)
+
+				.word ((screenchars0) & $ffff)					; Destination Address LSB + Destination Address MSB
+				.byte ((screenchars0 >> 16) & $0f)				; Destination Address BANK and FLAGS (copy to rbBaseMem)
+																;     0–3 Memory BANK within the selected MB (0-15)
+																;       4 HOLD,      i.e., do not change the address
+																;       5 MODULO,    i.e., apply the MODULO field to wraparound within a limited memory space
+																;       6 DIRECTION. If set, then the address is decremented instead of incremented.
+																;       7 I/O.       If set, then I/O registers are visible during the DMA controller at $D000 – $DFFF.
+
+				.word $0000
+
+; -------------------------------------------------------------------------------------------------
+
 screenrow				.byte 0
 screencolumn			.byte 0
 framelo					.byte 0
 framehi					.byte 0
 
 sampletrigger			.byte $01
+
+framefile				.byte "BAFRAMES.BIN", 0
 
 framedata
 

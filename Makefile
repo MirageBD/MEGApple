@@ -1,6 +1,6 @@
 # -----------------------------------------------------------------------------
 
-megabuild		= 1
+megabuild		= 0
 finalbuild		= 1
 attachdebugger	= 0
 
@@ -48,6 +48,7 @@ OBJS = $(EXE_DIR)/boot.o $(EXE_DIR)/main.o
 
 $(EXE_DIR)/boot.o:	$(SRC_DIR)/boot.s \
 					$(SRC_DIR)/main.s \
+					$(SRC_DIR)/sdc.s \
 					$(SRC_DIR)/macros.s \
 					$(SRC_DIR)/mathmacros.s \
 					$(SRC_DIR)/ringbuffer.s \
@@ -57,8 +58,8 @@ $(EXE_DIR)/boot.o:	$(SRC_DIR)/boot.s \
 
 $(EXE_DIR)/boot.prg.addr.mc: $(BINFILES) $(EXE_DIR)/boot.o Linkfile
 	$(LD) -Ln $(EXE_DIR)/boot.maptemp --dbgfile $(EXE_DIR)/boot.dbg -C Linkfile -o $(EXE_DIR)/boot.prg $(EXE_DIR)/boot.o
-	$(MEGAADDRESS) $(EXE_DIR)/boot.prg 00002100
-	$(MEGACRUNCH) -e 00002100 $(EXE_DIR)/boot.prg.addr
+	$(MEGAADDRESS) $(EXE_DIR)/boot.prg 00001000
+	$(MEGACRUNCH) -e 00001000 $(EXE_DIR)/boot.prg.addr
 
 $(EXE_DIR)/megapple.d81: $(EXE_DIR)/boot.prg.addr.mc
 	$(RM) $@
@@ -72,7 +73,7 @@ $(EXE_DIR)/megapple.d81: $(EXE_DIR)/boot.prg.addr.mc
 run: $(EXE_DIR)/megapple.d81
 
 ifeq ($(megabuild), 1)
-	$(MEGAFTP) -c "put D:\Mega\BadApple\exe\megapple.d81 megapple.d81" -c "quit"
+	$(MEGAFTP) -c "put D:\Mega\MEGApple\exe\megapple.d81 megapple.d81" -c "quit"
 	$(EL) -m MEGAPPLE.D81 -r $(EXE_DIR)/boot.prg.addr.mc
 ifeq ($(attachdebugger), 1)
 	m65dbg --device /dev/ttyS2

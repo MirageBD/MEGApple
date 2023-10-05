@@ -1,7 +1,9 @@
+.segment "SDC"
+
 ; ----------------------------------------------------------------------------------------------------
 
 .define sdc_transferbuffer	$0200
-.define sdc_sectorbuffer	$7e00
+.define sdc_sectorbuffer	$0400
 
 sdc_bytecounterlo	.byte 0
 sdc_bytecounterhi	.byte 0
@@ -165,7 +167,7 @@ sdc_readsector
 
 sdc_readsector_loop
 
-		lda #$1a										; read the next sector
+		lda #$1a										; read the next sector (hyppo_readfile)
 		sta $d640
 		clv
 		bcc sdc_readsector_error
@@ -203,10 +205,7 @@ sdc_readsector_error
 
 sdc_readsector_fatalerror
 
-:		lda #$0b
-		sta $d020
-		lda #$0c
-		sta $d020
+:		inc $d020
 		jmp :-
 
 ; ----------------------------------------------------------------------------------------------------

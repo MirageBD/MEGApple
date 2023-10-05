@@ -1,9 +1,12 @@
 MEMORY
 {
-	RAM:		start=$2100, size=$d800;
+	RAM:		start=$1000, size=$d800;
 }
 
 SEGMENTS
 {
-	MAIN:			load=RAM, start=$2100;
+	MAIN:			load=RAM, start=$1000;
+	SDC:			load=RAM, align=256;
+	RINGBUFFER:		load=RAM, align=256;
+	SAMPLEPLAY:		load=RAM, align=256;
 }

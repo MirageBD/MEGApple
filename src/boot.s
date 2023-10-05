@@ -5,6 +5,7 @@
 
 filebuffer = $0200
 
+.include "sdc.s"
 .include "macros.s"
 .include "mathmacros.s"
 .include "main.s"
