@@ -46,6 +46,11 @@ default: all
 
 OBJS = $(EXE_DIR)/boot.o $(EXE_DIR)/main.o
 
+# -----------------------------------------------------------------------------
+
+$(BIN_DIR)/bitmap_pal0.bin: $(BIN_DIR)/bitmap.bin
+	$(MC) $< cm1:1 d1:3 cl1:10000 rc1:0
+
 $(EXE_DIR)/boot.o:	$(SRC_DIR)/boot.s \
 					$(SRC_DIR)/main.s \
 					$(SRC_DIR)/sdc.s \
@@ -53,6 +58,7 @@ $(EXE_DIR)/boot.o:	$(SRC_DIR)/boot.s \
 					$(SRC_DIR)/mathmacros.s \
 					$(SRC_DIR)/ringbuffer.s \
 					$(SRC_DIR)/sampleplay.s \
+					$(BIN_DIR)/bitmap_pal0.bin \
 					Makefile Linkfile
 	$(AS) $(ASFLAGS) -o $@ $<
 

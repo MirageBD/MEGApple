@@ -38,9 +38,9 @@ mpPlaySample
 		; 0x1000000 = 40.5Mhz ( 2 ^ 24)
 		; 0x1000000 / $1ad1 = 2443Hz
 
-		lda #$d1
+		lda #$80										; d1
 		sta $d724,x										; CHXFREQL    Audio DMA channel X frequency LSB
-		lda #$22
+		lda #$23
 		sta $d725,x										; CHXFREQC    Audio DMA channel X frequency middle byte
 		lda #$00
 		sta $d726,x										; CHXFREQM    Audio DMA channel X frequency MSB

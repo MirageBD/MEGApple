@@ -9,4 +9,5 @@ SEGMENTS
 	SDC:			load=RAM, align=256;
 	RINGBUFFER:		load=RAM, align=256;
 	SAMPLEPLAY:		load=RAM, align=256;
+	PALETTE:		load=RAM, align=256;
 }
