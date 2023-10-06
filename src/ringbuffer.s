@@ -6,9 +6,32 @@
 .define rbSliceSize									$0400
 .define rbBaseMem									$050000
 
-.struct RBDATA
-	start		.dword
-.endstruct
+; ----------------------------------------------------------------------------------------------------
+
+ringbuffer_init
+
+		lda #$00
+		sta rbSliceStartLo+0
+		sta rbSliceStartLo+1
+		sta rbSliceStartHi+0
+		sta rbSliceStartHi+1
+		sta rbSliceStart+0
+		sta rbSliceStart+1
+		sta rbSliceIndex
+		sta rbPrevSliceIndex
+		sta rbChannel
+		lda #<$0000
+		sta rbAudioPos+0
+		lda #>$0000
+		sta rbAudioPos+1
+
+		lda #%00000100									; turn on chain
+		sta rbDMAcmd1
+
+		rts
+
+; ----------------------------------------------------------------------------------------------------
+
 
 rbGetSample
 
@@ -55,8 +78,8 @@ rbgs1	sbc #$00
 
 ; ----------------------------------------------------------------------------------------------------
 
-doDMA	lda #$00
-		sta $d020
+doDMA	;lda #$00
+		;sta $d020
 
 		lda rbSliceStart+0								; copy first slice start to dst1
 		sta rbDMAdst1+0
@@ -111,8 +134,8 @@ doDMA	lda #$00
 
 		DMA_RUN_JOB rbDMACopy
 
-		lda #$00
-		sta $d020
+		;lda #$00
+		;sta $d020
 
 		rts
 

@@ -63,6 +63,9 @@ entry_main
 		lda #%10100000									; Clear bit7=40 column, bit5=disable ...?
 		trb $d031
 
+		lda #80											; set to 80 for etherload
+		sta $d05e
+
 		lda #$01										; Y Position Where Character Display Starts ($D04E LSB, 0–3 of $D04F MSB)
 		sta $d04e
 
@@ -375,6 +378,8 @@ introirq
 		asl $d019
 		rti
 
+; ----------------------------------------------------------------------------------------------------
+
 .macro DEBUGTIME color
 .scope
 		lda showrastertime
@@ -389,22 +394,15 @@ introirq
 irq1
 		pha
 
-		lda endreached
-		beq :+
-
-		jsr sdc_closefile
-		jmp irqfinalize
-
 :		lda framelo
 		and #1
-
 		beq evenframe
 
 oddframe
 
 		DEBUGTIME $6f
 		jsr eorfill
-		
+
 		jmp endirq
 
 evenframe
@@ -448,6 +446,7 @@ endirq
 		sta mpChannel
 		jsr mpPlaySample
 :
+
 		inc framelo
 		lda framelo
 		bne :+
@@ -455,14 +454,52 @@ endirq
 :		
 		lda framehi
 		cmp #>(2*6570)
-		bne :+
+		;cmp #>(2*200)
+		bne irqfinalize
 		lda framelo
 		cmp #<(2*6570)
-		bne :+
+		;cmp #<(2*200)
+		bne irqfinalize
 
-		lda #1
-		sta endreached
-:
+		; --------------------------------------------
+
+		; END OF FRAMES!!!
+		lda #$01
+		sta endofframes
+
+		lda #$00
+		sta framehi
+		lda #$00
+		sta framelo
+
+		lda #$35
+		sta $01
+
+		jsr sdc_closefile
+
+		ldx #$00										; set filename for video frames, open file and get first sector
+:		lda framefile,x
+		beq :+
+		sta sdc_transferbuffer,x
+		inx
+		bra :-
+:		sta sdc_transferbuffer,x
+
+		jsr sdc_openfile
+		jsr sdc_readsector
+
+		jsr ringbuffer_init
+		lda #$01
+		sta sampletrigger
+		lda #$00
+		sta cnt3
+
+		lda #>sdc_sectorbuffer
+		sta hrmpf1+2
+		sta hrmpf2+2
+		sta hrmpf3+2
+
+		; --------------------------------------------
 
 irqfinalize
 
@@ -536,6 +573,12 @@ hrmpf4
 
 loadchar	lda #$00
 storechar	sta $b00b
+
+;		lda endofframes
+;		beq :+
+;		inc $d020
+;		jmp *-3
+;:
 
 		jmp plotloop
 
@@ -687,7 +730,7 @@ framelo					.byte 0
 framehi					.byte 0
 sampletrigger			.byte 1
 cnt3					.byte 0
-endreached				.byte 0
+endofframes				.byte 0
 showrastertime			.byte 0
 
 ; -------------------------------------------------------------------------------------------------
