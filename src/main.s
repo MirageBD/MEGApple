@@ -8,6 +8,9 @@
 
 ; ----------------------------------------------------------------------------------------------------
 
+.segment "INTROCHARS"
+		.incbin "../bin/bitmap_chars0.bin"
+
 .segment "PALETTE"
 palette
 		.incbin "../bin/bitmap_pal0.bin"
@@ -93,12 +96,29 @@ entry_main
 		ldz #$00										; fill first two bytes of colour ram
 		lda #%00000000
 		sta [zpcol],z
-		lda #%00001011									; 00001 for multicolour, 001 for white (dark gray in new palette)
+		lda #%00000000									; 00001 for multicolour, 001 for white (dark gray in new palette)
 		inz
 		sta [zpcol],z
 
 		DMA_RUN_JOB clearcolorramjob					; then copy source to dest+2 to repeat the two bytes over and over
-		DMA_RUN_JOB clearcharmemjob
+
+		lda $d070										; select mapped bank with the upper 2 bits of $d070
+		and #%00111111
+		sta $d070
+
+		ldx #$00										; set bitmap palette
+:		lda palette+$0000,x
+		sta $d100,x
+		lda palette+$0100,x
+		sta $d200,x
+		lda palette+$0200,x
+		sta $d300,x
+		inx
+		bne :-
+
+		lda $d070
+		and #%11001111									; clear bits 4 and 5 (BTPALSEL) so bitmap uses palette 0
+		sta $d070
 
 		lda #<$0800										; set (offset!) pointer to colour ram
 		sta $d064
@@ -114,19 +134,12 @@ entry_main
 		lda #>.hiword(screen1)
 		sta $d063
 
-		lda #<.loword(screenchars0)						; set pointer to chargen
-		sta $d068
-		lda #>.loword(screenchars0)
-		sta $d069
-		lda #<.hiword(screenchars0)
-		sta $d06a
-
 		lda #$00										; fill screenmem linearly vertically
 		sta screenrow
 		sta screencolumn
 
-		ldx #0
-		ldy #0
+		ldx #<(screenchars0 / 64)
+		ldy #>(screenchars0 / 64)
 
 put10	stx screen1+0
 put11	sty screen1+1
@@ -141,7 +154,7 @@ put11	sty screen1+1
 
 		clc
 		lda put10+1
-		adc #80*2
+		adc #40*2
 		sta put10+1
 		lda put10+2
 		adc #0
@@ -149,7 +162,7 @@ put11	sty screen1+1
 
 		clc
 		lda put11+1
-		adc #80*2
+		adc #40*2
 		sta put11+1
 		lda put11+2
 		adc #0
@@ -165,7 +178,7 @@ put11	sty screen1+1
 		inc screencolumn
 		inc screencolumn
 		lda screencolumn
-		cmp #160
+		cmp #80
 		beq endscreenplot1
 
 		lda #>screen1
@@ -249,23 +262,82 @@ endscreenplot1
 		lda #$18										; enable multicolour (yes, this is needed, don't remove!!!)
 		sta $d016
 
-		lda $d070										; select mapped bank with the upper 2 bits of $d070
-		and #%00111111
-		sta $d070
+		ldz #$00										; fill first two bytes of colour ram
+		lda #%00000000
+		sta [zpcol],z
+		lda #%00001011									; 00001 for multicolour, 001 for white (dark gray in new palette)
+		inz
+		sta [zpcol],z
 
-		ldx #$00										; set bitmap palette
-:		lda palette+$0000,x
-		sta $d100,x
-		lda palette+$0100,x
-		sta $d200,x
-		lda palette+$0200,x
-		sta $d300,x
-		inx
-		bne :-
+		DMA_RUN_JOB clearcolorramjob					; then copy source to dest+2 to repeat the two bytes over and over
+		DMA_RUN_JOB clearcharmemjob
 
-		lda $d070
-		and #%11001111									; clear bits 4 and 5 (BTPALSEL) so bitmap uses palette 0
-		sta $d070
+		lda #<.loword(screenchars0)						; set pointer to chargen
+		sta $d068
+		lda #>.loword(screenchars0)
+		sta $d069
+		lda #<.hiword(screenchars0)
+		sta $d06a
+
+		lda #$00										; fill screenmem linearly vertically
+		sta screenrow
+		sta screencolumn
+
+		ldx #0
+		ldy #0
+
+put20	stx screen1+0
+put21	sty screen1+1
+
+		clc
+		txa
+		adc #$01
+		tax
+		tya
+		adc #$00
+		tay
+
+		clc
+		lda put20+1
+		adc #80*2
+		sta put20+1
+		lda put20+2
+		adc #0
+		sta put20+2
+
+		clc
+		lda put21+1
+		adc #80*2
+		sta put21+1
+		lda put21+2
+		adc #0
+		sta put21+2
+
+		inc screenrow
+		lda screenrow
+		cmp #30
+		bne put20
+
+		lda #0
+		sta screenrow
+		inc screencolumn
+		inc screencolumn
+		lda screencolumn
+		cmp #160
+		beq endscreenplot2
+
+		lda #>screen1
+		sta put20+2
+		sta put21+2
+		clc
+		lda screencolumn
+		sta put20+1
+		adc #$01
+		sta put21+1
+
+		jmp put20
+
+endscreenplot2
 
 		lda #$7f										; disable CIA interrupts
 		sta $dc0d
@@ -298,7 +370,7 @@ loop
 
 introirq
 		pha
-		inc $d020
+		;inc $d020
 		pla
 		asl $d019
 		rti
@@ -616,6 +688,6 @@ framehi					.byte 0
 sampletrigger			.byte 1
 cnt3					.byte 0
 endreached				.byte 0
-showrastertime			.byte 1
+showrastertime			.byte 0
 
 ; -------------------------------------------------------------------------------------------------

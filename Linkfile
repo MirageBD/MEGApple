@@ -1,6 +1,6 @@
 MEMORY
 {
-	RAM:		start=$1000, size=$d800;
+	RAM:		start=$1000, size=$30000;
 }
 
 SEGMENTS
@@ -10,4 +10,5 @@ SEGMENTS
 	RINGBUFFER:		load=RAM, align=256;
 	SAMPLEPLAY:		load=RAM, align=256;
 	PALETTE:		load=RAM, align=256;
+	INTROCHARS:		load=RAM, start=$10000;
 }
