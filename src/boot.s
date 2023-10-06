@@ -5,9 +5,9 @@
 
 filebuffer = $0200
 
-.include "sdc.s"
 .include "macros.s"
 .include "mathmacros.s"
+.include "sdc.s"
 .include "main.s"
 .include "ringbuffer.s"
 .include "sampleplay.s"

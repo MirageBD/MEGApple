@@ -16,26 +16,18 @@ palette
 
 entry_main
 
-		lda #%10000000									; force PAL mode, because I can't be bothered with fixing it for NTSC
-		;trb $d06f										; clear bit 7 for PAL ; trb $d06f 
-		tsb $d06f										; set bit 7 for NTSC  ; tsb $d06f
-
-		SD_LOAD_ATTICRAM $000000, "bamusic.bin"			; load samples from SD
-
-		ldx #$00										; set filename for video frames, open file and get first sector
-:		lda framefile,x
-		sta sdc_transferbuffer,x
-		inx
-		cpx #13
-		bne :-
-
-		jsr sdc_openfile
-		jsr sdc_readsector
-
 		sei
 
 		lda #$35
 		sta $01
+
+		lda #$00
+		sta $d020
+		sta $d021
+		lda #$01
+		sta $d022
+		lda #$02
+		sta $d023
 
 		lda #%10000000									; Clear bit 7 - HOTREG
 		trb $d05d
@@ -59,16 +51,14 @@ entry_main
 		lda #%11111000									; unmap c65 roms $d030 by clearing bits 3-7
 		trb $d030
 
-		lda #$01										; enable 16 bit char ptrs (bit 0), but leave full colour off (bit 2)
+		lda #%10000000									; force NTSC mode, because we want to be running at 30FPS
+		tsb $d06f										; set bit 7 for NTSC  ; tsb $d06f
+
+		lda #$05										; enable Super-Extended Attribute Mode by asserting the FCLRHI and CHR16 signals - set bits 2 and 0 of $D054.
 		sta $d054
 
-		lda #%00100000									; turn on bit 5 (enables extended attributes needed for > 256 chars)
+		lda #%10100000									; Clear bit7=40 column, bit5=disable ...?
 		trb $d031
-
-		lda #80*2										; logical chars per row
-		sta $d058
-		lda #$00
-		sta $d059
 
 		lda #$01										; Y Position Where Character Display Starts ($D04E LSB, 0–3 of $D04F MSB)
 		sta $d04e
@@ -85,6 +75,11 @@ entry_main
 
 		lda #$50										; set TEXTXPOS to same as SDBDRWDLSB
 		sta $d04c
+
+		lda #40*2										; logical chars per row
+		sta $d058
+		lda #$00
+		sta $d059
 
 		lda #<.loword(SAFE_COLOR_RAM)
 		sta zpcol+0
@@ -104,6 +99,27 @@ entry_main
 
 		DMA_RUN_JOB clearcolorramjob					; then copy source to dest+2 to repeat the two bytes over and over
 		DMA_RUN_JOB clearcharmemjob
+
+		lda #<$0800										; set (offset!) pointer to colour ram
+		sta $d064
+		lda #>$0800
+		sta $d065
+
+		lda #<.loword(screen1)							; set pointer to screen ram
+		sta $d060
+		lda #>.loword(screen1)
+		sta $d061
+		lda #<.hiword(screen1)
+		sta $d062
+		lda #>.hiword(screen1)
+		sta $d063
+
+		lda #<.loword(screenchars0)						; set pointer to chargen
+		sta $d068
+		lda #>.loword(screenchars0)
+		sta $d069
+		lda #<.hiword(screenchars0)
+		sta $d06a
 
 		lda #$00										; fill screenmem linearly vertically
 		sta screenrow
@@ -165,35 +181,70 @@ put11	sty screen1+1
 
 endscreenplot1
 
-		lda #<$0800										; set (offset!) pointer to colour ram
-		sta $d064
-		lda #>$0800
-		sta $d065
+		lda #$7f										; disable CIA interrupts
+		sta $dc0d
+		sta $dd0d
+		lda $dc0d
+		lda $dd0d
 
-		lda #<.loword(screen1)							; set pointer to screen ram
-		sta $d060
-		lda #>.loword(screen1)
-		sta $d061
-		lda #<.hiword(screen1)
-		sta $d062
-		lda #>.hiword(screen1)
-		sta $d063
+		lda #$00										; disable IRQ raster interrupts because C65 uses raster interrupts in the ROM
+		sta $d01a
 
-		lda #<.loword(screenchars0)						; set pointer to chargen
-		sta $d068
-		lda #>.loword(screenchars0)
-		sta $d069
-		lda #<.hiword(screenchars0)
-		sta $d06a
+		lda #$fe										; setup IRQ interrupt
+		sta $d012
+		lda #<introirq
+		sta $fffe
+		lda #>introirq
+		sta $ffff
 
+		lda #$01										; ACK
+		sta $d01a
+
+		cli
+
+		ldx #$00										; set filename for music sample, open file and get all sectors and copy to attic ram
+:		lda musicfile,x
+		beq :+
+		sta sdc_transferbuffer,x
+		inx
+		bra :-
+:		sta sdc_transferbuffer,x
+
+		jsr sdc_openfile
+:		jsr sdc_readsector
+		bcc :+
+		jsr sdc_copytoattic
+		bra :-
+:		lda #$35
+		sta $01
+		jsr sdc_closefile
+
+		ldx #$00										; set filename for video frames, open file and get first sector
+:		lda framefile,x
+		beq :+
+		sta sdc_transferbuffer,x
+		inx
+		bra :-
+:		sta sdc_transferbuffer,x
+
+		jsr sdc_openfile
+		jsr sdc_readsector
+
+		sei
+
+		lda #$35
+		sta $01
+
+		lda #$01										; enable 16 bit char ptrs (bit 0), but leave full colour off (bit 2)
+		sta $d054
+
+		lda #%10000000									; Set bit7=80 column
+		tsb $d031
+
+		lda #80*2										; logical chars per row
+		sta $d058
 		lda #$00
-		sta $d020
-		sta $d021
-
-		lda #$01
-		sta $d022
-		lda #$02
-		sta $d023
+		sta $d059
 
 		lda #$18										; enable multicolour (yes, this is needed, don't remove!!!)
 		sta $d016
@@ -244,6 +295,13 @@ loop
 ; ----------------------------------------------------------------------------------------------------
 
 .align 256
+
+introirq
+		pha
+		inc $d020
+		pla
+		asl $d019
+		rti
 
 .macro DEBUGTIME color
 .scope
@@ -549,6 +607,7 @@ copycharmemjob
 
 ; -------------------------------------------------------------------------------------------------
 
+musicfile				.byte "BAMUSIC.BIN", 0
 framefile				.byte "BAFRAMES.BIN", 0
 screenrow				.byte 0
 screencolumn			.byte 0
