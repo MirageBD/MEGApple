@@ -158,6 +158,9 @@ sdc_closefile
 
 sdc_readsector
 
+		lda #$35
+		sta $01
+
 		inc sdc_sectorcount
 														; assume the file is already open.		
 		lda $d030										; unmap the colour RAM from $dc00 because that will prevent us from mapping in the sector buffer
@@ -192,6 +195,10 @@ sdc_readsector_loop
 
 		pla												; map the colour RAM at $dc00 if it was previously mapped
 		sta $d030
+
+		lda #$34
+		sta $01
+
 		rts
 
 sdc_readsector_error
@@ -201,6 +208,10 @@ sdc_readsector_error
 
 		pla												; map the colour RAM at $dc00 if it was previously mapped
 		sta $d030
+
+		lda #$34
+		sta $01
+
 		rts
 
 sdc_readsector_fatalerror

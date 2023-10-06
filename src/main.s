@@ -20,7 +20,7 @@ entry_main
 		;trb $d06f										; clear bit 7 for PAL ; trb $d06f 
 		tsb $d06f										; set bit 7 for NTSC  ; tsb $d06f
 
-		SD_LOAD_ATTICRAM $000000, "samples.bin"			; load samples from SD
+		SD_LOAD_ATTICRAM $000000, "bamusic.bin"			; load samples from SD
 
 		ldx #$00										; set filename for video frames, open file and get first sector
 :		lda framefile,x
@@ -344,27 +344,6 @@ irqfinalize
 
 ; ----------------------------------------------------------------------------------------------------
 
-incme
-		lda hrmpf1+2
-		cmp #>sdc_sectorbuffer
-		bne wrapme
-		inc hrmpf1+2
-		inc hrmpf2+2
-		inc hrmpf3+2
-		rts
-
-wrapme
-		lda #$35
-		sta $01
-		jsr sdc_readsector
-		lda #$34
-		sta $01
-		lda #>sdc_sectorbuffer
-		sta hrmpf1+2
-		sta hrmpf2+2
-		sta hrmpf3+2
-		rts
-
 ploteorchars
 
 		lda #$34
@@ -378,18 +357,51 @@ hrmpf1	lda sdc_sectorbuffer,x
 		sta storechar+1
 		inx
 		bne hrmpf2
-		jsr incme
+		lda hrmpf1+2
+		cmp #>sdc_sectorbuffer
+		bne wrapme1
+		inc hrmpf1+2
+		inc hrmpf2+2
+		inc hrmpf3+2
+		bra hrmpf2
+wrapme1	jsr sdc_readsector
+		lda #>sdc_sectorbuffer
+		sta hrmpf1+2
+		sta hrmpf2+2
+		sta hrmpf3+2
 hrmpf2	lda sdc_sectorbuffer,x
 		beq plotloopend
 		sta storechar+2
 		inx
 		bne hrmpf3
-		jsr incme
+		lda hrmpf1+2
+		cmp #>sdc_sectorbuffer
+		bne wrapme2
+		inc hrmpf1+2
+		inc hrmpf2+2
+		inc hrmpf3+2
+		bra hrmpf3
+wrapme2	jsr sdc_readsector
+		lda #>sdc_sectorbuffer
+		sta hrmpf1+2
+		sta hrmpf2+2
+		sta hrmpf3+2
 hrmpf3	lda sdc_sectorbuffer,x
 		sta loadchar+1
 		inx
 		bne hrmpf4
-		jsr incme
+		lda hrmpf1+2
+		cmp #>sdc_sectorbuffer
+		bne wrapme3
+		inc hrmpf1+2
+		inc hrmpf2+2
+		inc hrmpf3+2
+		bra hrmpf4
+wrapme3	jsr sdc_readsector
+		lda #>sdc_sectorbuffer
+		sta hrmpf1+2
+		sta hrmpf2+2
+		sta hrmpf3+2
 hrmpf4
 
 loadchar	lda #$00
@@ -401,10 +413,32 @@ plotloopend
 
 		inx
 		bne :+
-		jsr incme
+		lda hrmpf1+2
+		cmp #>sdc_sectorbuffer
+		bne wrapme4
+		inc hrmpf1+2
+		inc hrmpf2+2
+		inc hrmpf3+2
+		bra :+
+wrapme4	jsr sdc_readsector
+		lda #>sdc_sectorbuffer
+		sta hrmpf1+2
+		sta hrmpf2+2
+		sta hrmpf3+2
 :		inx
 		bne :+
-		jsr incme
+		lda hrmpf1+2
+		cmp #>sdc_sectorbuffer
+		bne wrapme5
+		inc hrmpf1+2
+		inc hrmpf2+2
+		inc hrmpf3+2
+		bra :+
+wrapme5	jsr sdc_readsector
+		lda #>sdc_sectorbuffer
+		sta hrmpf1+2
+		sta hrmpf2+2
+		sta hrmpf3+2
 :		
 
 		stx cnt3
@@ -432,6 +466,27 @@ eorfill
 
 		ldy #$00
 :		eor (zpchars),y
+		sta (zpchars),y
+		iny
+		eor (zpchars),y
+		sta (zpchars),y
+		iny
+		eor (zpchars),y
+		sta (zpchars),y
+		iny
+		eor (zpchars),y
+		sta (zpchars),y
+		iny
+		eor (zpchars),y
+		sta (zpchars),y
+		iny
+		eor (zpchars),y
+		sta (zpchars),y
+		iny
+		eor (zpchars),y
+		sta (zpchars),y
+		iny
+		eor (zpchars),y
 		sta (zpchars),y
 		iny
 		bne :-
