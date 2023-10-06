@@ -307,26 +307,8 @@ samplestart
 .byte >.loword(SSTART)
 .byte <.hiword(SSTART)
 
-.define SEND $007f00
-sampleend
-.byte <.loword(SSTART)
-.byte >.loword(SSTART)
-.byte <.hiword(SSTART)
-
 .define SLEN $007fff
 samplelength
 .byte <.loword(SLEN)
 .byte >.loword(SLEN)
 .byte <.hiword(SLEN)
-
-.define SREP $00D0F8
-samplerepeat
-.byte <.loword(SREP)
-.byte >.loword(SREP)
-.byte <.hiword(SREP)
-
-.align 256
-sampleremap
-.repeat 256, I
-.byte ((128 + I) .MOD 256)
-.endrepeat
