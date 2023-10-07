@@ -27,9 +27,7 @@ entry_main
 		lda #$00
 		sta $d020
 		sta $d021
-		lda #$01
 		sta $d022
-		lda #$02
 		sta $d023
 
 		lda #%10000000									; Clear bit 7 - HOTREG
@@ -251,6 +249,16 @@ endscreenplot1
 		lda #$35
 		sta $01
 
+:		bit $d011
+		bpl :-
+
+		lda #$f0
+:		cmp $d012
+		bne :-
+
+		lda #$00										; blank screen while setting up
+		sta $d011
+
 		lda #$01										; enable 16 bit char ptrs (bit 0), but leave full colour off (bit 2)
 		sta $d054
 
@@ -373,7 +381,8 @@ loop
 
 introirq
 		pha
-		;inc $d020
+		;lda sdc_sectorcount+1							; $00-$24
+		;sta $d020
 		pla
 		asl $d019
 		rti
@@ -394,6 +403,16 @@ introirq
 irq1
 		pha
 
+		lda #$00
+		sta $d020
+		lda #$01
+		sta $d022
+		lda #$02
+		sta $d023
+
+		lda #$1b
+		sta $d011
+
 		lda endofframes
 		beq playframes
 
@@ -401,7 +420,7 @@ irq1
 		bne :+
 		inc framehi
 		lda framehi
-		cmp #$50
+		cmp #$a0
 		bne :+
 		lda #$00
 		sta endofframes
@@ -473,11 +492,11 @@ endirq
 		inc framehi
 :		
 		lda framehi
-		cmp #>(2*6570)
+		cmp #>(2*6550)
 		;cmp #>(2*200)
 		bne irqfinalize
 		lda framelo
-		cmp #<(2*6570)
+		cmp #<(2*6550)
 		;cmp #<(2*200)
 		bne irqfinalize
 
