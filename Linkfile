@@ -10,5 +10,7 @@ SEGMENTS
 	RINGBUFFER:		load=RAM, align=256;
 	SAMPLEPLAY:		load=RAM, align=256;
 	PALETTE:		load=RAM, align=256;
+	SPRITES:		load=RAM, start=$6000;
+	SPRITEPAL:		load=RAM, align=256;
 	INTROCHARS:		load=RAM, start=$10000;
 }

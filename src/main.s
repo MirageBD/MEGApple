@@ -15,6 +15,14 @@
 palette
 		.incbin "../bin/bitmap_pal0.bin"
 
+.segment "SPRITES"
+sprites
+		.incbin "../bin/m65sprites_sprites0.bin"
+
+.segment "SPRITEPAL"
+spritepal
+		.incbin "../bin/m65sprites_pal0.bin"
+
 .segment "MAIN"
 
 entry_main
@@ -355,6 +363,84 @@ endscreenplot2
 
 		jsr mpInit
 
+		; ---------------------------------------------- sprite setup
+
+		lda $d070										; select mapped bank with the upper 2 bits of $d070
+		and #%00111111
+		ora #%01000000									; select palette 01
+		sta $d070
+
+		ldx #$00										; set sprite palette - each sprite has a 16 colour palette
+:		lda spritepal+0*$0100,x
+		sta $d100,x
+		sta $d110,x
+		lda spritepal+1*$0100,x
+		sta $d200,x
+		sta $d210,x
+		lda spritepal+2*$0100,x
+		sta $d300,x
+		sta $d310,x
+		inx
+		cpx #$10
+		bne :-
+
+		lda #$00										; set transparent colours
+		sta $d027
+		sta $d028
+
+		lda $d070
+		and #%11110011									; set sprite palette to 01
+		ora #%00000100
+		sta $d070
+
+		lda #<sprptrs									; tell VIC-IV where the sprite pointers are (SPRPTRADR)
+		sta $d06c
+		lda #>sprptrs
+		sta $d06d
+		lda #(sprptrs & $ff0000) >> 16					; SPRPTRBNK
+		sta $d06e
+
+		lda #%10000000									; tell VIC-IV to expect two bytes per sprite pointer instead of one
+		tsb $d06e										; do this after setting sprite pointer address, because that uses $d06e as well
+
+		lda #%00000000
+		sta $d015
+		lda #%00000011
+		sta $d05f										; Sprite H640 X Super-MSBs
+		lda #$00
+		sta $d010
+
+		lda #0
+		sta $d01b										; sprite background priority
+
+		lda #%11111111
+		sta $d076										; enable SPRENVV400 for this sprite
+		lda #%11111111
+		sta $d057										; enable 64 pixel wide sprites. 16 pixels if in Full Colour Mode
+		lda #%00000011
+		sta $d06b										; enable Full Colour Mode (SPR16EN)
+		lda #%11111111
+		sta $d055										; sprite height enable (SPRHGTEN)
+		lda #%00010000
+		tsb $d054										; enable SPR640 for all sprites
+
+		lda #168										; set sprite height to 64 pixels (SPRHGHT) for sprites that have SPRHGTEN enabled (sample sprites)
+		sta $d056
+
+		lda #%00000000									; disable stretch for both
+		sta $d017
+		sta $d01d
+
+		lda #$a8
+		sta $d000
+		lda #$b8
+		sta $d002
+		lda #$3e
+		sta $d001
+		sta $d003
+
+		; ---------------------------------------------- sprite setup end
+
 		lda #$7f										; disable CIA interrupts
 		sta $dc0d
 		sta $dd0d
@@ -596,6 +682,14 @@ irqfinalize
 		lda xorfill
 		eor #$01
 		sta xorfill
+		jmp irqkeyboardend
+:
+		cmp #KEYBOARD_KEY3
+		bne :+
+		lda showlogo
+		eor #%00000011
+		sta showlogo
+		sta $d015
 		jmp irqkeyboardend
 :
 		cmp #KEYBOARD_CURSORDOWN
@@ -855,5 +949,13 @@ showrastertime			.byte 0
 loadbar					.byte $00
 sectorcount				.word 0
 xorfill					.byte 1
+showlogo				.byte 0
 
 ; -------------------------------------------------------------------------------------------------
+
+.align 256
+sprptrs
+	.byte <($6000/64)
+	.byte >($6000/64)
+	.byte <(($6000)/64 + 21)
+	.byte >(($6000)/64 + 21)

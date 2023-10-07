@@ -1,6 +1,6 @@
 # -----------------------------------------------------------------------------
 
-megabuild		= 1
+megabuild		= 0
 finalbuild		= 1
 attachdebugger	= 0
 
@@ -51,6 +51,9 @@ OBJS = $(EXE_DIR)/boot.o $(EXE_DIR)/main.o
 $(BIN_DIR)/bitmap_pal0.bin: $(BIN_DIR)/bitmap.bin
 	$(MC) $< cm1:1 d1:3 cl1:10000 rc1:0
 
+$(BIN_DIR)/m65sprites_sprites0.bin: $(BIN_DIR)/m65sprites.bin
+	$(MC) $< cm1:1 d1:3 cl1:10000 rc1:0 sm1:1
+
 $(EXE_DIR)/boot.o:	$(SRC_DIR)/boot.s \
 					$(SRC_DIR)/main.s \
 					$(SRC_DIR)/sdc.s \
@@ -60,6 +63,7 @@ $(EXE_DIR)/boot.o:	$(SRC_DIR)/boot.s \
 					$(SRC_DIR)/sampleplay.s \
 					$(SRC_DIR)/keyboard.s \
 					$(BIN_DIR)/bitmap_pal0.bin \
+					$(BIN_DIR)/m65sprites_sprites0.bin \
 					Makefile Linkfile
 	$(AS) $(ASFLAGS) -o $@ $<
 
