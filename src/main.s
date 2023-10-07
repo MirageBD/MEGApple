@@ -64,7 +64,7 @@ entry_main
 		lda #80											; set to 80 for etherload
 		sta $d05e
 
-		lda #$01										; Y Position Where Character Display Starts ($D04E LSB, 0–3 of $D04F MSB)
+		lda #$01										; Y Position Where Character Display Starts ($D04E LSB, 0–3 of $D04F MSB). CAN'T BE 0!!!
 		sta $d04e
 
 		lda #30											; set number of rows
@@ -353,6 +353,8 @@ put21	sty screen1+1
 
 endscreenplot2
 
+		jsr mpInit
+
 		lda #$7f										; disable CIA interrupts
 		sta $dc0d
 		sta $dd0d
@@ -585,6 +587,8 @@ irqfinalize
 		lda showrastertime
 		eor #$01
 		sta showrastertime
+		lda #$00
+		sta $d020
 		jmp irqkeyboardend
 :
 		cmp #KEYBOARD_KEY2
@@ -592,6 +596,29 @@ irqfinalize
 		lda xorfill
 		eor #$01
 		sta xorfill
+		jmp irqkeyboardend
+:
+		cmp #KEYBOARD_CURSORDOWN
+		bne :++
+		sec
+		lda mpVolume
+		sbc #$08
+		bcs :+
+		lda #$00
+:		sta mpVolume
+		jsr mpUpdateVolume
+		jmp irqkeyboardend
+:
+		cmp #KEYBOARD_CURSORUP
+		bne :++
+		clc
+		lda mpVolume
+		adc #$08
+		cmp #$40
+		bmi :+
+		lda #$40
+:		sta mpVolume
+		jsr mpUpdateVolume
 		jmp irqkeyboardend
 :
 

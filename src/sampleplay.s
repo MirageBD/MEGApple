@@ -3,6 +3,24 @@
 mpChannel
 .byte $00
 
+mpVolume
+.byte $40
+
+mpInit
+
+		lda #$40
+		sta mpVolume
+		rts
+
+mpUpdateVolume
+
+		lda mpVolume									; set volume
+		sta $d729+0*16									; CHXVOLUME
+		sta $d729+1*16									; CHXVOLUME
+		sta $d729+2*16									; CHXVOLUME
+		sta $d729+3*16									; CHXVOLUME
+		rts
+
 mpPlaySample
 
 		lda mpChannel
@@ -45,7 +63,7 @@ mpPlaySample
 		lda #$00
 		sta $d726,x										; CHXFREQM    Audio DMA channel X frequency MSB
 
-		lda #$40										; set volume
+		lda mpVolume									; set volume
 		sta $d729,x										; CHXVOLUME
 
 		lda #%10000000									; enable audio DMA
