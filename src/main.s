@@ -394,6 +394,23 @@ introirq
 irq1
 		pha
 
+		lda endofframes
+		beq playframes
+
+		inc framelo											; when we've reached the end wait a while before restarting
+		bne :+
+		inc framehi
+		lda framehi
+		cmp #$50
+		bne :+
+		lda #$00
+		sta endofframes
+		sta framelo
+		sta framehi
+:		jmp irqfinalize
+
+playframes
+
 :		lda framelo
 		and #1
 		beq evenframe

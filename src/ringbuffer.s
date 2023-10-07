@@ -11,6 +11,12 @@
 ringbuffer_init
 
 		lda #$00
+		sta rbDMAsrc1+0
+		sta rbDMAsrc1+1
+		sta rbDMAsrc1+2
+		sta rbDMAsrc2+0
+		sta rbDMAsrc2+1
+		sta rbDMAsrc2+2
 		sta rbSliceStartLo+0
 		sta rbSliceStartLo+1
 		sta rbSliceStartHi+0
