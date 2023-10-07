@@ -228,6 +228,9 @@ endscreenplot1
 :		jsr sdc_readsector
 		bcc :+
 		jsr sdc_copytoattic
+		inc sectorcount+0
+		bne :-
+		inc sectorcount+1
 		bra :-
 :		lda #$35
 		sta $01
@@ -381,8 +384,34 @@ loop
 
 introirq
 		pha
-		;lda sdc_sectorcount+1							; $00-$24
-		;sta $d020
+		phx
+		phy
+
+		lda sectorcount+1
+		lsr
+		clc
+		adc #$01
+		cmp #19
+		bmi :+
+		lda #18
+:		sta loadbar
+
+		ldx #$00
+
+:		txa
+		asl
+		tay
+		lda #<(screenchars0 / 64 + 20*30 + 7)
+		sta screen1+2*(25*40+11)+0,y
+		lda #>(screenchars0 / 64 + 20*30 + 7)
+		sta screen1+2*(25*40+11)+1,y
+
+		inx
+		cpx loadbar
+		bne :-
+
+		ply
+		plx
 		pla
 		asl $d019
 		rti
@@ -399,6 +428,7 @@ introirq
 .endscope
 .endmacro
 
+.align 256
 
 irq1
 		pha
@@ -771,5 +801,7 @@ sampletrigger			.byte 1
 cnt3					.byte 0
 endofframes				.byte 0
 showrastertime			.byte 0
+loadbar					.byte $00
+sectorcount				.word 0
 
 ; -------------------------------------------------------------------------------------------------
