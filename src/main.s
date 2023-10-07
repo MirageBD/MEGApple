@@ -365,6 +365,7 @@ endscreenplot2
 
 		; ---------------------------------------------- sprite setup
 
+
 		lda $d070										; select mapped bank with the upper 2 bits of $d070
 		and #%00111111
 		ora #%01000000									; select palette 01
@@ -374,12 +375,18 @@ endscreenplot2
 :		lda spritepal+0*$0100,x
 		sta $d100,x
 		sta $d110,x
+		sta $d120,x
+		sta $d130,x
 		lda spritepal+1*$0100,x
 		sta $d200,x
 		sta $d210,x
+		sta $d220,x
+		sta $d230,x
 		lda spritepal+2*$0100,x
 		sta $d300,x
 		sta $d310,x
+		sta $d320,x
+		sta $d330,x
 		inx
 		cpx #$10
 		bne :-
@@ -387,6 +394,8 @@ endscreenplot2
 		lda #$00										; set transparent colours
 		sta $d027
 		sta $d028
+		sta $d029
+		sta $d02a
 
 		lda $d070
 		and #%11110011									; set sprite palette to 01
@@ -403,9 +412,9 @@ endscreenplot2
 		lda #%10000000									; tell VIC-IV to expect two bytes per sprite pointer instead of one
 		tsb $d06e										; do this after setting sprite pointer address, because that uses $d06e as well
 
-		lda #%00000011
+		lda #%00001111
 		sta $d015
-		lda #%00000011
+		lda #%11111111
 		sta $d05f										; Sprite H640 X Super-MSBs
 		lda #$00
 		sta $d010
@@ -417,27 +426,32 @@ endscreenplot2
 		sta $d076										; enable SPRENVV400 for this sprite
 		lda #%11111111
 		sta $d057										; enable 64 pixel wide sprites. 16 pixels if in Full Colour Mode
-		lda #%00000011
+		lda #%11111111
 		sta $d06b										; enable Full Colour Mode (SPR16EN)
 		lda #%11111111
 		sta $d055										; sprite height enable (SPRHGTEN)
 		lda #%00010000
 		tsb $d054										; enable SPR640 for all sprites
 
-		lda #168										; set sprite height to 64 pixels (SPRHGHT) for sprites that have SPRHGTEN enabled (sample sprites)
+		lda #128										; set sprite height to 128 pixels (SPRHGHT) for sprites that have SPRHGTEN enabled (sample sprites)
 		sta $d056
 
-		lda #%00000000									; disable stretch for both
+		lda #%00000000									; disable stretch
 		sta $d017
 		sta $d01d
 
 		lda #$a8
 		sta $d000
+		sta $d004
 		lda #$b8
 		sta $d002
-		lda #$3e
+		sta $d006
+		lda #$0e
 		sta $d001
 		sta $d003
+		lda #$0e+128
+		sta $d005
+		sta $d007
 
 		; ---------------------------------------------- sprite setup end
 
@@ -530,6 +544,11 @@ irq1
 
 		lda #$1b
 		sta $d011
+
+		;lda #%111111111
+		;sta $d61d											; bit 7 = KEYLEDENA, bit 0-6 = KEYLEDREG
+		;lda framelo
+		;sta $d61e											; KEYLEDVAL
 
 		lda endofframes
 		beq playframes
@@ -687,7 +706,7 @@ irqfinalize
 		cmp #KEYBOARD_KEY3
 		bne :+
 		lda showlogo
-		eor #%00000011
+		eor #%00001111
 		sta showlogo
 		sta $d015
 		jmp irqkeyboardend
@@ -949,7 +968,7 @@ showrastertime			.byte 0
 loadbar					.byte $00
 sectorcount				.word 0
 xorfill					.byte 1
-showlogo				.byte %00000011
+showlogo				.byte %00001111
 
 ; -------------------------------------------------------------------------------------------------
 
@@ -957,5 +976,9 @@ showlogo				.byte %00000011
 sprptrs
 	.byte <($6000/64)
 	.byte >($6000/64)
-	.byte <(($6000)/64 + 21)
-	.byte >(($6000)/64 + 21)
+	.byte <(($6000)/64 + 32)
+	.byte >(($6000)/64 + 32)
+	.byte <(($6000)/64 + 16)
+	.byte >(($6000)/64 + 16)
+	.byte <(($6000)/64 + 48)
+	.byte >(($6000)/64 + 48)
