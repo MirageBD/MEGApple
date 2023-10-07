@@ -467,9 +467,11 @@ playframes
 oddframe
 
 		DEBUGTIME $6f
+		lda xorfill
+		beq :+
 		jsr eorfill
 
-		jmp endirq
+:		jmp endirq
 
 evenframe
 
@@ -572,6 +574,28 @@ endirq
 
 irqfinalize
 
+		jsr keyboard_update
+
+		lda keyboard_shouldsendreleaseevent
+		beq irqkeyboardend
+
+		lda keyboard_prevpressed
+		cmp #KEYBOARD_KEY1
+		bne :+
+		lda showrastertime
+		eor #$01
+		sta showrastertime
+		jmp irqkeyboardend
+:
+		cmp #KEYBOARD_KEY2
+		bne :+
+		lda xorfill
+		eor #$01
+		sta xorfill
+		jmp irqkeyboardend
+:
+
+irqkeyboardend
 		DEBUGTIME $00 ; black
 
 		pla
@@ -803,5 +827,6 @@ endofframes				.byte 0
 showrastertime			.byte 0
 loadbar					.byte $00
 sectorcount				.word 0
+xorfill					.byte 1
 
 ; -------------------------------------------------------------------------------------------------

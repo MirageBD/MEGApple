@@ -1,6 +1,6 @@
 # -----------------------------------------------------------------------------
 
-megabuild		= 1
+megabuild		= 0
 finalbuild		= 1
 attachdebugger	= 0
 
@@ -58,6 +58,7 @@ $(EXE_DIR)/boot.o:	$(SRC_DIR)/boot.s \
 					$(SRC_DIR)/mathmacros.s \
 					$(SRC_DIR)/ringbuffer.s \
 					$(SRC_DIR)/sampleplay.s \
+					$(SRC_DIR)/keyboard.s \
 					$(BIN_DIR)/bitmap_pal0.bin \
 					Makefile Linkfile
 	$(AS) $(ASFLAGS) -o $@ $<
