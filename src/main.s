@@ -424,6 +424,9 @@ oddframe
 
 evenframe
 
+		lda #$35
+		sta $01
+
 		DEBUGTIME $c0
 		DMA_RUN_JOB copycharmemjob
 
