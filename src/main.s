@@ -403,7 +403,7 @@ endscreenplot2
 		lda #%10000000									; tell VIC-IV to expect two bytes per sprite pointer instead of one
 		tsb $d06e										; do this after setting sprite pointer address, because that uses $d06e as well
 
-		lda #%00000000
+		lda #%00000011
 		sta $d015
 		lda #%00000011
 		sta $d05f										; Sprite H640 X Super-MSBs
@@ -949,7 +949,7 @@ showrastertime			.byte 0
 loadbar					.byte $00
 sectorcount				.word 0
 xorfill					.byte 1
-showlogo				.byte 0
+showlogo				.byte %00000011
 
 ; -------------------------------------------------------------------------------------------------
 
