@@ -489,6 +489,9 @@ introirq
 		phx
 		phy
 
+		lda #$34
+		sta $01
+
 		lda sectorcount+1
 		lsr
 		clc
@@ -511,6 +514,9 @@ introirq
 		inx
 		cpx loadbar
 		bne :-
+
+		lda #$35
+		sta $01
 
 		ply
 		plx
