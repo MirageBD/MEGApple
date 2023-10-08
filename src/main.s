@@ -1,7 +1,7 @@
 .define screen1			$9c00							; 80*30*2 =  4800 = $12c0
 
 .define screenchars1	$b000							; buffer where image gets built/filled - 80*30*8 = 19200 = $4b00
-.define screenchars0	$10000							; final backbuffer - 80*30*8 = 19200 = $4b00
+.define screenchars0	$30000							; final backbuffer - 80*30*8 = 19200 = $4b00
 
 .define zpcol			$90
 .define zpchars			$94
@@ -37,6 +37,11 @@ entry_main
 		sta $d021
 		sta $d022
 		sta $d023
+
+		sta $d418
+		sta $d438
+        sta $d458
+		sta $d478
 
 		lda #%10000000									; Clear bit 7 - HOTREG
 		trb $d05d
@@ -980,11 +985,11 @@ showlogo				.byte %00001111
 
 .align 256
 sprptrs
-	.byte <($6000/64)
-	.byte >($6000/64)
-	.byte <(($6000)/64 + 32)
-	.byte >(($6000)/64 + 32)
-	.byte <(($6000)/64 + 16)
-	.byte >(($6000)/64 + 16)
-	.byte <(($6000)/64 + 48)
-	.byte >(($6000)/64 + 48)
+	.byte <(sprites/64)
+	.byte >(sprites/64)
+	.byte <((sprites)/64 + 32)
+	.byte >((sprites)/64 + 32)
+	.byte <((sprites)/64 + 16)
+	.byte >((sprites)/64 + 16)
+	.byte <((sprites)/64 + 48)
+	.byte >((sprites)/64 + 48)
