@@ -9,6 +9,7 @@ filebuffer = $0200
 .include "mathmacros.s"
 .include "sdc.s"
 .include "keyboard.s"
+.include "leds.s"
 .include "main.s"
 .include "ringbuffer.s"
 .include "sampleplay.s"

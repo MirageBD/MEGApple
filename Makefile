@@ -57,6 +57,7 @@ $(BIN_DIR)/m65sprites_sprites0.bin: $(BIN_DIR)/m65sprites.bin
 $(EXE_DIR)/boot.o:	$(SRC_DIR)/boot.s \
 					$(SRC_DIR)/main.s \
 					$(SRC_DIR)/sdc.s \
+					$(SRC_DIR)/leds.s \
 					$(SRC_DIR)/macros.s \
 					$(SRC_DIR)/mathmacros.s \
 					$(SRC_DIR)/ringbuffer.s \

@@ -754,6 +754,32 @@ irqfinalize
 irqkeyboardend
 		DEBUGTIME $00 ; black
 
+		lda framehi
+		ldx #(LEDS_LED::led_power_r_lefthalf)
+		LEDS_SETINDEXANDLEVEL
+		ldx #(LEDS_LED::led_power_g_lefthalf)
+		LEDS_SETINDEXANDLEVEL
+		ldx #(LEDS_LED::led_power_b_lefthalf)
+		LEDS_SETINDEXANDLEVEL
+		ldx #(LEDS_LED::led_power_r_righthalf)
+		LEDS_SETINDEXANDLEVEL
+		ldx #(LEDS_LED::led_power_g_righthalf)
+		LEDS_SETINDEXANDLEVEL
+		ldx #(LEDS_LED::led_power_b_righthalf)
+		LEDS_SETINDEXANDLEVEL
+		ldx #(LEDS_LED::led_drive_r_lefthalf)
+		LEDS_SETINDEXANDLEVEL
+		ldx #(LEDS_LED::led_drive_g_lefthalf)
+		LEDS_SETINDEXANDLEVEL
+		ldx #(LEDS_LED::led_drive_b_lefthalf)
+		LEDS_SETINDEXANDLEVEL
+		ldx #(LEDS_LED::led_drive_r_righthalf)
+		LEDS_SETINDEXANDLEVEL
+		ldx #(LEDS_LED::led_drive_g_righthalf)
+		LEDS_SETINDEXANDLEVEL
+		ldx #(LEDS_LED::led_drive_b_righthalf)
+		LEDS_SETINDEXANDLEVEL
+
 		pla
 		asl $d019
 		rti
