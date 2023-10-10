@@ -258,7 +258,10 @@ endscreenplot1
 :		sta sdc_transferbuffer,x
 
 		jsr sdc_openfile
-		jsr sdc_readsector
+
+		jsr sdc_readsectorsinadvance_init				; read 4 sectors in advance
+		jsr sdc_readbufferedsector_init					; set up read-back from buffered sectors
+		jsr sdc_readbufferedsector						; copy 1 (buffered) sector to sdc_sector buffer
 
 		sei
 
@@ -589,7 +592,9 @@ oddframe
 		beq :+
 		jsr eorfill
 
-:		jmp endirq
+:		DEBUGTIME $e0 ; bright green
+		jsr sdc_readsectorsinadvance
+		jmp endirq
 
 evenframe
 
@@ -775,7 +780,7 @@ hrmpf1	lda sdc_sectorbuffer,x
 		inc hrmpf2+2
 		inc hrmpf3+2
 		bra hrmpf2
-wrapme1	jsr sdc_readsector
+wrapme1	jsr sdc_readbufferedsector
 		lda #>sdc_sectorbuffer
 		sta hrmpf1+2
 		sta hrmpf2+2
@@ -792,7 +797,7 @@ hrmpf2	lda sdc_sectorbuffer,x
 		inc hrmpf2+2
 		inc hrmpf3+2
 		bra hrmpf3
-wrapme2	jsr sdc_readsector
+wrapme2	jsr sdc_readbufferedsector
 		lda #>sdc_sectorbuffer
 		sta hrmpf1+2
 		sta hrmpf2+2
@@ -808,7 +813,7 @@ hrmpf3	lda sdc_sectorbuffer,x
 		inc hrmpf2+2
 		inc hrmpf3+2
 		bra hrmpf4
-wrapme3	jsr sdc_readsector
+wrapme3	jsr sdc_readbufferedsector
 		lda #>sdc_sectorbuffer
 		sta hrmpf1+2
 		sta hrmpf2+2
@@ -837,7 +842,7 @@ plotloopend
 		inc hrmpf2+2
 		inc hrmpf3+2
 		bra :+
-wrapme4	jsr sdc_readsector
+wrapme4	jsr sdc_readbufferedsector
 		lda #>sdc_sectorbuffer
 		sta hrmpf1+2
 		sta hrmpf2+2
@@ -851,7 +856,7 @@ wrapme4	jsr sdc_readsector
 		inc hrmpf2+2
 		inc hrmpf3+2
 		bra :+
-wrapme5	jsr sdc_readsector
+wrapme5	jsr sdc_readbufferedsector
 		lda #>sdc_sectorbuffer
 		sta hrmpf1+2
 		sta hrmpf2+2
