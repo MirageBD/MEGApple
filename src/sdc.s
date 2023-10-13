@@ -5,7 +5,7 @@
 .define sdc_transferbuffer	$0200
 .define sdc_sectorbuffer	$0400
 
-.define sdc_inadvancebuffer	$6000
+.define sdc_inadvancebuffer	$8000
 
 .define sdc_sectorstobuffer	8
 

@@ -98,6 +98,8 @@ entry_main
 		lda #$00
 		sta $d059
 
+		jsr leds_init
+
 		lda #<.loword(SAFE_COLOR_RAM)
 		sta zpcol+0
 		lda #>.loword(SAFE_COLOR_RAM)
@@ -559,11 +561,6 @@ irq1
 		lda #$1b
 		sta $d011
 
-		;lda #%111111111
-		;sta $d61d											; bit 7 = KEYLEDENA, bit 0-6 = KEYLEDREG
-		;lda framelo
-		;sta $d61e											; KEYLEDVAL
-
 		lda endofframes
 		beq playframes
 
@@ -581,7 +578,21 @@ irq1
 
 playframes
 
-:		lda framelo
+		lda framelo
+		sta lsget+1
+		clc
+		lda framehi
+		adc #>ledstream
+		sta lsget+2
+
+lsget	lda ledstream
+		sta $d61e
+		sta $d020
+
+		lda #LEDS_LED::led_drive_r_lefthalf					; select red channel of right most led
+		sta $d61d
+
+		lda framelo
 		and #1
 		beq evenframe
 
@@ -753,32 +764,6 @@ irqfinalize
 
 irqkeyboardend
 		DEBUGTIME $00 ; black
-
-		lda framehi
-		ldx #(LEDS_LED::led_power_r_lefthalf)
-		LEDS_SETINDEXANDLEVEL
-		ldx #(LEDS_LED::led_power_g_lefthalf)
-		LEDS_SETINDEXANDLEVEL
-		ldx #(LEDS_LED::led_power_b_lefthalf)
-		LEDS_SETINDEXANDLEVEL
-		ldx #(LEDS_LED::led_power_r_righthalf)
-		LEDS_SETINDEXANDLEVEL
-		ldx #(LEDS_LED::led_power_g_righthalf)
-		LEDS_SETINDEXANDLEVEL
-		ldx #(LEDS_LED::led_power_b_righthalf)
-		LEDS_SETINDEXANDLEVEL
-		ldx #(LEDS_LED::led_drive_r_lefthalf)
-		LEDS_SETINDEXANDLEVEL
-		ldx #(LEDS_LED::led_drive_g_lefthalf)
-		LEDS_SETINDEXANDLEVEL
-		ldx #(LEDS_LED::led_drive_b_lefthalf)
-		LEDS_SETINDEXANDLEVEL
-		ldx #(LEDS_LED::led_drive_r_righthalf)
-		LEDS_SETINDEXANDLEVEL
-		ldx #(LEDS_LED::led_drive_g_righthalf)
-		LEDS_SETINDEXANDLEVEL
-		ldx #(LEDS_LED::led_drive_b_righthalf)
-		LEDS_SETINDEXANDLEVEL
 
 		pla
 		asl $d019
@@ -1011,6 +996,7 @@ loadbar					.byte $00
 sectorcount				.word 0
 xorfill					.byte 1
 showlogo				.byte %00001111
+beattime				.byte 0
 
 ; -------------------------------------------------------------------------------------------------
 
@@ -1024,3 +1010,221 @@ sprptrs
 	.byte >((sprites)/64 + 16)
 	.byte <((sprites)/64 + 48)
 	.byte >((sprites)/64 + 48)
+
+.segment "LEDSTREAM"
+ledstream
+
+.macro DRUM0
+	.byte $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00
+.endmacro
+
+.macro DRUM1
+	.byte $ff, $ff, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00
+.endmacro
+
+.macro DRUM2
+	.byte $ff, $ff, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $ff, $ff, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00
+.endmacro
+
+.macro DRUM3
+	.byte $ff, $ff, $00, $00, $00, $00, $ff, $ff, $00, $00, $00, $00, $ff, $ff, $00, $00, $00, $00, $ff, $ff, $00, $00, $00, $00, $00, $00
+.endmacro
+
+.macro DRUMPATTERN0
+	DRUM1
+	DRUM1
+	DRUM1
+	DRUM1
+.endmacro
+
+.macro DRUMPATTERN1
+	DRUM1
+	DRUM1
+	DRUM1
+	DRUM2
+.endmacro
+
+.macro DRUMPATTERN2
+	DRUM1
+	DRUM1
+	DRUM1
+	DRUM3
+.endmacro
+
+.macro DRUMPATTERN3
+	DRUM1
+	DRUM1
+	DRUM3
+	DRUM3
+.endmacro
+
+.macro DRUMPATTERN4
+	DRUM1
+	DRUM1
+	DRUM2
+	DRUM1
+.endmacro
+
+.macro DRUMPATTERN5
+	DRUM0
+	DRUM0
+	DRUM1
+	DRUM0
+.endmacro
+
+.macro DRUMOCTAVE0
+	DRUMPATTERN2
+	DRUMPATTERN1
+	DRUMPATTERN2
+	DRUMPATTERN1
+	DRUMPATTERN2
+	DRUMPATTERN1
+	DRUMPATTERN2
+	DRUMPATTERN0
+.endmacro
+
+.macro DRUMOCTAVE1
+	DRUMPATTERN0
+	DRUMPATTERN1
+	DRUMPATTERN0
+	DRUMPATTERN1
+	DRUMPATTERN0
+	DRUMPATTERN1
+	DRUMPATTERN0
+	DRUMPATTERN3
+.endmacro
+
+.macro DRUMOCTAVE2
+	DRUMPATTERN0
+	DRUMPATTERN1
+	DRUMPATTERN0
+	DRUMPATTERN4
+	DRUMPATTERN0
+	DRUMPATTERN1
+	DRUMPATTERN0
+	DRUMPATTERN3
+.endmacro
+
+.macro DRUMOCTAVE3
+	DRUMPATTERN0
+	DRUMPATTERN1
+	DRUMPATTERN0
+	DRUMPATTERN4
+	DRUMPATTERN0
+	DRUMPATTERN1
+	DRUMPATTERN0
+	DRUMPATTERN0
+.endmacro
+
+.macro DRUMOCTAVE4
+	DRUMPATTERN5
+	DRUMPATTERN5
+	DRUMPATTERN5
+	DRUMPATTERN5
+	DRUMPATTERN5
+	DRUMPATTERN5
+	DRUMPATTERN5
+	DRUMPATTERN5
+.endmacro
+
+/*
+	different drums:
+	0. 
+	1. .
+	2. . .
+	3. ....
+
+	different drum patterns:
+	0. 1111      .   .   .   .
+	1. 1112      .   .   .   . .
+	2. 1113      .   .   .   ....
+	3. 1121      .   .   . . .
+	4. 0010              .
+
+	different drum octaves:
+	0. 21212120
+	1. 01010102
+	2. 01010101
+
+	.   .   .   ....            .   .   .   . . 				; DRUMOCTAVE0 - 21212120
+	.   .   .   ....            .   .   .   . . 
+	.   .   .   ....            .   .   .   . . 
+	.   .   .   ....            .   .   .   .
+
+	.   .   .   .               .   .   .   . . 				; DRUMOCTAVE1 - 01010103
+	.   .   .   .               .   .   .   . .   
+	.   .   .   .               .   .   .   . . 
+	.   .   .   .               .   .   ........				; girl drops in
+
+	.   .   .   .               .   .   .   . .					; DRUMOCTAVE2 - 01040103
+	.   .   .   .               .   .   . . .
+	.   .   .   .               .   .   .   . .
+	.   .   .   .               .   .   ....... 				; pot drop + shattering
+
+	.   .   .   .               .   .   .   . .					; DRUMOCTAVE3 - 01040100
+	.   .   .   .               .   .   . . .
+	.   .   .   .               .   .   .   . .
+	.   .   .   .               .   .   .   .					; girl grin fadein
+
+	.   .   .   .               .   .   .   . .					; DRUMOCTAVE2
+	.   .   .   .               .   .   . . .
+	.   .   .   .               .   .   .   . .
+	.   .   .   .               .   .   .......
+
+	.   .   .   .               .   .   .   . .					; DRUMOCTAVE2
+	.   .   .   .               .   .   . . .
+	.   .   .   .               .   .   .   . .
+	.   .   .   .               .   .   .......					; before girl does flame thing
+
+            .                           .						; DRUMOCTAVE4
+            .                           .
+            .                           .
+            .                           .
+
+            .                           .
+            .                           .
+            .                           .
+            .
+
+	.   .   .   .               .   .   .   x x
+	.   .   .   .               .   .   x x x
+	.   .   .   .               .   .   .   x x
+	.   .   .   .               .   .   xxxxxxxx				; girl slices screen into symbols
+
+	.   .   .   .               .   .   .   x x
+	.   .   .   .               .   .   x x x
+	.   .   .   .               .   .   .   x x
+	.   .   .   .               .   .   xxxxxxxx				; tall and short girl moving to backs
+
+	.   .   .   .               .   .   .   x x
+	.   .   .   .               .   .   x x x
+	.   .   .   .               .   .   .   x x
+	.   .   .   .               .   .   .   .					; 3 girls sliding to left
+
+	.   .   .   .               .   .   .   x x
+	.   .   .   .               .   .   x x x
+	.   .   .   .               .   .   .   x x
+	.   .   .   .               .   .   xxxxxxxx				; drop from bottle
+
+	.   .   .   .               .   .   .   x x
+	.   .   .   .               .   .   x x x
+	.   .   .   .               .   .   .   x x
+	.   .   .   .               .   .   .   .					; after this girl with umbrella apears
+
+*/
+
+	DRUM0
+	DRUM0
+	DRUM0
+
+	DRUMOCTAVE0
+	DRUMOCTAVE1
+	DRUMOCTAVE2
+	DRUMOCTAVE3
+	DRUMOCTAVE2
+	DRUMOCTAVE2
+	DRUMOCTAVE4
+	DRUMOCTAVE4
+
+
+	;DRUMOCTAVE2

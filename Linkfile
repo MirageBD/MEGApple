@@ -13,5 +13,6 @@ SEGMENTS
 	PALETTE:		load=RAM, align=256;
 	SPRITEPAL:		load=RAM, align=256;
 	SPRITES:		load=RAM, align=256;
+	LEDSTREAM:		load=RAM, start=$4000;
 	INTROCHARS:		load=RAM, start=$30000;
 }
