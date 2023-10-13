@@ -57,7 +57,7 @@ mpPlaySample
 		; 0x1000000 / $1ad1 = 2443Hz
 
 														; was 90 23 before I started messing with it
-		lda #$c0										; d1
+		lda #$c8										; d1
 		sta $d724,x										; CHXFREQL    Audio DMA channel X frequency LSB
 		lda #$23
 		sta $d725,x										; CHXFREQC    Audio DMA channel X frequency middle byte

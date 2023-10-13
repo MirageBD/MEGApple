@@ -1072,6 +1072,13 @@ ledstream
 	DRUM0
 .endmacro
 
+.macro DRUMPATTERN6
+	DRUM0
+	DRUM0
+	DRUM0
+	DRUM0
+.endmacro
+
 .macro DRUMOCTAVE0
 	DRUMPATTERN2
 	DRUMPATTERN1
@@ -1125,6 +1132,17 @@ ledstream
 	DRUMPATTERN5
 	DRUMPATTERN5
 	DRUMPATTERN5
+.endmacro
+
+.macro DRUMOCTAVE5
+	DRUMPATTERN6
+	DRUMPATTERN6
+	DRUMPATTERN6
+	DRUMPATTERN6
+	DRUMPATTERN6
+	DRUMPATTERN6
+	DRUMPATTERN6
+	DRUMPATTERN6
 .endmacro
 
 /*
@@ -1186,29 +1204,29 @@ ledstream
             .                           .
             .
 
-	.   .   .   .               .   .   .   x x
-	.   .   .   .               .   .   x x x
-	.   .   .   .               .   .   .   x x
-	.   .   .   .               .   .   xxxxxxxx				; girl slices screen into symbols
+	.   .   .   .               .   .   .   . . 				; DRUMOCTAVE2
+	.   .   .   .               .   .   . . .   
+	.   .   .   .               .   .   .   . . 
+	.   .   .   .               .   .   ........				; girl slices screen into symbols
 
-	.   .   .   .               .   .   .   x x
-	.   .   .   .               .   .   x x x
-	.   .   .   .               .   .   .   x x
-	.   .   .   .               .   .   xxxxxxxx				; tall and short girl moving to backs
+	.   .   .   .               .   .   .   . .  				; DRUMOCTAVE2
+	.   .   .   .               .   .   . . .   
+	.   .   .   .               .   .   .   . . 
+	.   .   .   .               .   .   ........				; tall and short girl moving to backs
 
-	.   .   .   .               .   .   .   x x
-	.   .   .   .               .   .   x x x
-	.   .   .   .               .   .   .   x x
+	.   .   .   .               .   .   .   . .					; DRUMOCTAVE3 - 01040100
+	.   .   .   .               .   .   . . .   
+	.   .   .   .               .   .   .   . . 
 	.   .   .   .               .   .   .   .					; 3 girls sliding to left
 
-	.   .   .   .               .   .   .   x x
-	.   .   .   .               .   .   x x x
-	.   .   .   .               .   .   .   x x
-	.   .   .   .               .   .   xxxxxxxx				; drop from bottle
+	.   .   .   .               .   .   .   . .  				; DRUMOCTAVE2
+	.   .   .   .               .   .   . . .   
+	.   .   .   .               .   .   .   . . 
+	.   .   .   .               .   .   ........				; drop from bottle
 
-	.   .   .   .               .   .   .   x x
-	.   .   .   .               .   .   x x x
-	.   .   .   .               .   .   .   x x
+	.   .   .   .               .   .   .   . .					; DRUMOCTAVE3 - 01040100
+	.   .   .   .               .   .   . . .   
+	.   .   .   .               .   .   .   . . 
 	.   .   .   .               .   .   .   .					; after this girl with umbrella apears
 
 */
@@ -1225,6 +1243,11 @@ ledstream
 	DRUMOCTAVE2
 	DRUMOCTAVE4
 	DRUMOCTAVE4
+	DRUMOCTAVE2
+	DRUMOCTAVE2
+	DRUMOCTAVE3
+	DRUMOCTAVE2
+	DRUMOCTAVE3
 
-
-	;DRUMOCTAVE2
+	DRUMOCTAVE5
+	DRUMOCTAVE5
