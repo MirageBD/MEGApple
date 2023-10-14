@@ -585,12 +585,23 @@ playframes
 		adc #>ledstream
 		sta lsget+2
 
+		;lda #%11111111										; make sure we're not writing to any leds when setting brightness register
+		;sta $d61d
 lsget	lda ledstream
-		sta $d61e
-		sta $d020
+		;beq skipleds
+		tax
+		and #%11110000										; highest 4 bits contain brightness
+		beq :+
+		;ora #%00001111										; make brighter if there is _some_ brightness
+:		sta $d61e
+		;sta $d020
 
-		lda #LEDS_LED::led_drive_b_lefthalf					; select blue channel of left most led
-		sta $d61d
+		txa
+		and #%00001111										; lowest 4 bits contain LED index
+		ora #%10000000
+		sta $d61d											; select led
+
+;skipleds
 
 		lda framelo
 		and #1
@@ -1019,15 +1030,19 @@ ledstream
 .endmacro
 
 .macro DRUM1
-	.byte $ff, $ff, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00
+	.byte $f8, $fb, $08, $0b, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00
 .endmacro
 
 .macro DRUM2
-	.byte $ff, $ff, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $ff, $ff, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00
+	.byte $f8, $fb, $08, $0b, $00, $00, $00, $00, $00, $00, $00, $00, $f8, $fb, $08, $0b, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00
 .endmacro
 
 .macro DRUM3
-	.byte $ff, $ff, $00, $00, $00, $00, $ff, $ff, $00, $00, $00, $00, $ff, $ff, $00, $00, $00, $00, $ff, $ff, $00, $00, $00, $00, $00, $00
+	.byte $f8, $f2, $08, $02, $00, $00, $f8, $f2, $08, $02, $00, $00, $f8, $f2, $08, $02, $00, $00, $f8, $f2, $08, $02, $00, $00, $00, $00
+.endmacro
+
+.macro SNARE1
+	.byte $f0, $f0, $f0, $f0, $f0, $f0, $f0, $f0, $f0, $f0, $f0, $f0, $f0, $f0, $f0, $f0, $f0, $f0, $f0, $f0, $f0, $f0, $f0, $f0, $f0, $f0
 .endmacro
 
 .macro DRUMPATTERN0
@@ -1068,7 +1083,7 @@ ledstream
 .macro DRUMPATTERN5
 	DRUM0
 	DRUM0
-	DRUM1
+	SNARE1
 	DRUM0
 .endmacro
 
