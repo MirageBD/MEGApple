@@ -589,7 +589,7 @@ lsget	lda ledstream
 		sta $d61e
 		sta $d020
 
-		lda #LEDS_LED::led_drive_r_lefthalf					; select red channel of right most led
+		lda #LEDS_LED::led_drive_b_lefthalf					; select blue channel of left most led
 		sta $d61d
 
 		lda framelo
@@ -1160,7 +1160,7 @@ ledstream
 	DRUMPATTERN0
 	DRUMPATTERN1
 	DRUMPATTERN0
-	DRUMPATTERN2
+	DRUMPATTERN3
 .endmacro
 
 .macro DRUMOCTAVE7
@@ -1212,7 +1212,7 @@ ledstream
     2   01040103    X   X   X   X           X   X   X   X X         X   X   X   X           X   X   X X X           X   X   X   X           X   X   X   X X         X   X   X   X           X   X   XXXXXXXX
     4   55555555            X                       X                       X                       X                       X                       X                       X                       X      
     5   55555550            X                       X                       X                       X                       X                       X                       X                       X   X
-    6   01010102    X   X   X   X           X   X   X   X X         X   X   X   X           X   X   X   X X         X   X   X   X           X   X   X   X X         X   X   X   X           X   X   X   XXXX
+    6   01010102    X   X   X   X           X   X   X   X X         X   X   X   X           X   X   X   X X         X   X   X   X           X   X   X   X X         X   X   X   X           X   X   XXXXXXXX
     2   01040103    X   X   X   X           X   X   X   X X         X   X   X   X           X   X   X X X           X   X   X   X           X   X   X   X X         X   X   X   X           X   X   XXXXXXXX
     3   01040100    X   X   X   X           X   X   X   X X         X   X   X   X           X   X   X X X           X   X   X   X           X   X   X   X X         X   X   X   X           X   X   X   X	
     2   01040103    X   X   X   X           X   X   X   X X         X   X   X   X           X   X   X X X           X   X   X   X           X   X   X   X X         X   X   X   X           X   X   XXXXXXXX
