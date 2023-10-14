@@ -574,7 +574,7 @@ irq1
 		ldy led_index										; when we've reached the end tone down the LEDS and wait a while before restarting
 		lda led_brights,y
 		sec
-		sbc #$04
+		sbc #$01
 		bcs :+
 		lda #$00
 :		sta led_brights,y
@@ -606,6 +606,8 @@ irq1
 		jmp irqfinalize
 
 playframes
+
+		jsr keyboard_update
 
 		lda ledscycling
 		beq :+
@@ -788,8 +790,6 @@ endirq
 		; --------------------------------------------
 
 irqfinalize
-
-		jsr keyboard_update
 
 		lda keyboard_shouldsendreleaseevent
 		beq irqkeyboardend
