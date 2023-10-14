@@ -1079,6 +1079,13 @@ ledstream
 	DRUM0
 .endmacro
 
+.macro DRUMPATTERN7
+	DRUM0
+	DRUM0
+	DRUM1
+	DRUM1
+.endmacro
+
 .macro DRUMOCTAVE0
 	DRUMPATTERN2
 	DRUMPATTERN1
@@ -1135,6 +1142,39 @@ ledstream
 .endmacro
 
 .macro DRUMOCTAVE5
+	DRUMPATTERN5
+	DRUMPATTERN5
+	DRUMPATTERN5
+	DRUMPATTERN5
+	DRUMPATTERN5
+	DRUMPATTERN5
+	DRUMPATTERN5
+	DRUMPATTERN7
+.endmacro
+
+.macro DRUMOCTAVE6
+	DRUMPATTERN0
+	DRUMPATTERN1
+	DRUMPATTERN0
+	DRUMPATTERN1
+	DRUMPATTERN0
+	DRUMPATTERN1
+	DRUMPATTERN0
+	DRUMPATTERN2
+.endmacro
+
+.macro DRUMOCTAVE7
+	DRUMPATTERN0
+	DRUMPATTERN1
+	DRUMPATTERN0
+	DRUMPATTERN1
+	DRUMPATTERN0
+	DRUMPATTERN1
+	DRUMPATTERN0
+	DRUMPATTERN0
+.endmacro
+
+.macro DRUMOCTAVEEND
 	DRUMPATTERN6
 	DRUMPATTERN6
 	DRUMPATTERN6
@@ -1164,70 +1204,19 @@ ledstream
 	1. 01010102
 	2. 01010101
 
-	.   .   .   ....            .   .   .   . . 				; DRUMOCTAVE0 - 21212120
-	.   .   .   ....            .   .   .   . . 
-	.   .   .   ....            .   .   .   . . 
-	.   .   .   ....            .   .   .   .
-
-	.   .   .   .               .   .   .   . . 				; DRUMOCTAVE1 - 01010103
-	.   .   .   .               .   .   .   . .   
-	.   .   .   .               .   .   .   . . 
-	.   .   .   .               .   .   ........				; girl drops in
-
-	.   .   .   .               .   .   .   . .					; DRUMOCTAVE2 - 01040103
-	.   .   .   .               .   .   . . .
-	.   .   .   .               .   .   .   . .
-	.   .   .   .               .   .   ....... 				; pot drop + shattering
-
-	.   .   .   .               .   .   .   . .					; DRUMOCTAVE3 - 01040100
-	.   .   .   .               .   .   . . .
-	.   .   .   .               .   .   .   . .
-	.   .   .   .               .   .   .   .					; girl grin fadein
-
-	.   .   .   .               .   .   .   . .					; DRUMOCTAVE2
-	.   .   .   .               .   .   . . .
-	.   .   .   .               .   .   .   . .
-	.   .   .   .               .   .   .......
-
-	.   .   .   .               .   .   .   . .					; DRUMOCTAVE2
-	.   .   .   .               .   .   . . .
-	.   .   .   .               .   .   .   . .
-	.   .   .   .               .   .   .......					; before girl does flame thing
-
-            .                           .						; DRUMOCTAVE4
-            .                           .
-            .                           .
-            .                           .
-
-            .                           .
-            .                           .
-            .                           .
-            .
-
-	.   .   .   .               .   .   .   . . 				; DRUMOCTAVE2
-	.   .   .   .               .   .   . . .   
-	.   .   .   .               .   .   .   . . 
-	.   .   .   .               .   .   ........				; girl slices screen into symbols
-
-	.   .   .   .               .   .   .   . .  				; DRUMOCTAVE2
-	.   .   .   .               .   .   . . .   
-	.   .   .   .               .   .   .   . . 
-	.   .   .   .               .   .   ........				; tall and short girl moving to backs
-
-	.   .   .   .               .   .   .   . .					; DRUMOCTAVE3 - 01040100
-	.   .   .   .               .   .   . . .   
-	.   .   .   .               .   .   .   . . 
-	.   .   .   .               .   .   .   .					; 3 girls sliding to left
-
-	.   .   .   .               .   .   .   . .  				; DRUMOCTAVE2
-	.   .   .   .               .   .   . . .   
-	.   .   .   .               .   .   .   . . 
-	.   .   .   .               .   .   ........				; drop from bottle
-
-	.   .   .   .               .   .   .   . .					; DRUMOCTAVE3 - 01040100
-	.   .   .   .               .   .   . . .   
-	.   .   .   .               .   .   .   . . 
-	.   .   .   .               .   .   .   .					; after this girl with umbrella apears
+    0   21212120    X   X   X   XXXX        X   X   X   X X	        X   X   X   XXXX        X   X   X   X X         X   X   X   XXXX        X   X   X   X X         X   X   X   XXXX        X   X   X   X   
+    1   01010103    X   X   X   X           X   X   X   X X         X   X   X   X           X   X   X   X X         X   X   X   X           X   X   X   X X         X   X   X   X           X   X   XXXXXXXX
+    2   01040103    X   X   X   X           X   X   X   X X         X   X   X   X           X   X   X X X           X   X   X   X           X   X   X   X X         X   X   X   X           X   X   XXXXXXXX
+    3   01040100    X   X   X   X           X   X   X   X X         X   X   X   X           X   X   X X X           X   X   X   X           X   X   X   X X         X   X   X   X           X   X   X   X   
+    2   01040103    X   X   X   X           X   X   X   X X	        X   X   X   X           X   X   X X X           X   X   X   X           X   X   X   X X         X   X   X   X           X   X   XXXXXXXX
+    2   01040103    X   X   X   X           X   X   X   X X         X   X   X   X           X   X   X X X           X   X   X   X           X   X   X   X X         X   X   X   X           X   X   XXXXXXXX
+    4   55555555            X                       X                       X                       X                       X                       X                       X                       X      
+    5   55555550            X                       X                       X                       X                       X                       X                       X                       X   X
+    6   01010102    X   X   X   X           X   X   X   X X         X   X   X   X           X   X   X   X X         X   X   X   X           X   X   X   X X         X   X   X   X           X   X   X   XXXX
+    2   01040103    X   X   X   X           X   X   X   X X         X   X   X   X           X   X   X X X           X   X   X   X           X   X   X   X X         X   X   X   X           X   X   XXXXXXXX
+    3   01040100    X   X   X   X           X   X   X   X X         X   X   X   X           X   X   X X X           X   X   X   X           X   X   X   X X         X   X   X   X           X   X   X   X	
+    2   01040103    X   X   X   X           X   X   X   X X         X   X   X   X           X   X   X X X           X   X   X   X           X   X   X   X X         X   X   X   X           X   X   XXXXXXXX
+    7   01010100    X   X   X   X           X   X   X   X X	        X   X   X   X           X   X   X   X X         X   X   X   X           X   X   X   X X         X   X   X   X           X   X   X   X	
 
 */
 
@@ -1241,13 +1230,15 @@ ledstream
 	DRUMOCTAVE3
 	DRUMOCTAVE2
 	DRUMOCTAVE2
-	DRUMOCTAVE4
-	DRUMOCTAVE4
-	DRUMOCTAVE2
-	DRUMOCTAVE2
-	DRUMOCTAVE3
-	DRUMOCTAVE2
-	DRUMOCTAVE3
 
+	DRUMOCTAVE4
 	DRUMOCTAVE5
-	DRUMOCTAVE5
+
+	DRUMOCTAVE6
+	DRUMOCTAVE2
+	DRUMOCTAVE3
+	DRUMOCTAVE2
+	DRUMOCTAVE7
+
+	DRUMOCTAVEEND
+	DRUMOCTAVEEND
