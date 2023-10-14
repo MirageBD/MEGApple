@@ -27,11 +27,10 @@
 
 leds_init
 
-		lda #%11111111										; enable software control of leds and make sure no led is selected
-		sta $d61d
+		ldx #%11111111										; enable software control of leds and make sure no led is selected
+		stx $d61d
 
-		lda #$00											; set level to 0
-		sta $d61e
+		sta $d61e											; set level
 
 		lda #LEDS_LED::led_drive_r_lefthalf
 		sta $d61d

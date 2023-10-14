@@ -98,6 +98,7 @@ entry_main
 		lda #$00
 		sta $d059
 
+		lda #$ff
 		jsr leds_init
 
 		lda #<.loword(SAFE_COLOR_RAM)
@@ -373,6 +374,9 @@ endscreenplot2
 
 		jsr mpInit
 
+		lda #$00
+		jsr leds_init
+
 		; ---------------------------------------------- sprite setup
 
 
@@ -564,7 +568,28 @@ irq1
 		lda endofframes
 		beq playframes
 
-		inc framelo											; when we've reached the end wait a while before restarting
+		lda #$35
+		sta $01
+
+		ldy led_index										; when we've reached the end tone down the LEDS and wait a while before restarting
+		lda led_brights,y
+		sec
+		sbc #$04
+		bcs :+
+		lda #$00
+:		sta led_brights,y
+		sta $d61e
+		lda led_index
+		ora #$80
+		sta $d61d
+		inc led_index
+		lda led_index
+		cmp #12
+		bne :+
+		lda #0
+		sta led_index
+
+:		inc framelo
 		bne :+
 		inc framehi
 		lda framehi
@@ -574,11 +599,19 @@ irq1
 		sta endofframes
 		sta framelo
 		sta framehi
-:		jmp irqfinalize
+:
+		lda #$34
+		sta $01
+
+		jmp irqfinalize
 
 playframes
 
-		lda framelo
+		lda ledscycling
+		beq :+
+		jmp cycleleds
+
+:		lda framelo
 		sta lsget+1
 		clc
 		lda framehi
@@ -588,11 +621,15 @@ playframes
 		;lda #%11111111										; make sure we're not writing to any leds when setting brightness register
 		;sta $d61d
 lsget	lda ledstream
-		;beq skipleds
-		tax
+		cmp #$aa
+		bne :+
+		lda #$01
+		sta ledscycling
+		jmp skipleds
+:		tax
 		and #%11110000										; highest 4 bits contain brightness
 		beq :+
-		;ora #%00001111										; make brighter if there is _some_ brightness
+		ora #%00001111										; make brighter if there is _some_ brightness
 :		sta $d61e
 		;sta $d020
 
@@ -600,9 +637,29 @@ lsget	lda ledstream
 		and #%00001111										; lowest 4 bits contain LED index
 		ora #%10000000
 		sta $d61d											; select led
+		jmp skipleds
 
-;skipleds
-
+cycleleds
+		ldy led_index
+		lda led_indices,y
+		clc
+		adc led_incs,y
+		sta led_indices,y
+		tax
+		lda sine,x
+		sta $d61e
+		sta led_brights,y
+		lda led_index
+		ora #$80
+		sta $d61d
+		inc led_index
+		lda led_index
+		cmp #12
+		bne :+
+		lda #0
+		sta led_index
+:
+skipleds
 		lda framelo
 		and #1
 		beq evenframe
@@ -685,8 +742,21 @@ endirq
 
 		lda #$00
 		sta framehi
-		lda #$00
 		sta framelo
+		sta ledscycling
+		sta led_index
+		sta led_indices+0
+		sta led_indices+1
+		sta led_indices+2
+		sta led_indices+3
+		sta led_indices+4
+		sta led_indices+5
+		sta led_indices+6
+		sta led_indices+7
+		sta led_indices+8
+		sta led_indices+9
+		sta led_indices+10
+		sta led_indices+11
 
 		lda #$35
 		sta $01
@@ -1008,10 +1078,35 @@ sectorcount				.word 0
 xorfill					.byte 1
 showlogo				.byte %00001111
 beattime				.byte 0
+ledscycling				.byte 0
+
+led_index				.byte 0
+led_indices				.byte 0,0,0,0,0,0,0,0,0,0,0,0
+led_brights				.byte 0,0,0,0,0,0,0,0,0,0,0,0
+led_incs				.byte 18,22,36,18,22,36,36,22,18,36,22,18
 
 ; -------------------------------------------------------------------------------------------------
 
 .align 256
+
+sine
+.byte 001, 001, 001, 001, 001, 001, 002, 002, 003, 004, 004, 005, 006, 007, 008, 009, 010, 011, 013, 014, 015, 017, 019, 020, 022, 024, 025, 027, 029, 031, 033, 036
+.byte 038, 040, 042, 045, 047, 049, 052, 054, 057, 060, 062, 065, 068, 070, 073, 076, 079, 082, 085, 088, 091, 094, 097, 100, 103, 106, 109, 112, 115, 118, 121, 124
+.byte 127, 131, 134, 137, 140, 143, 146, 149, 152, 155, 158, 161, 164, 167, 170, 173, 176, 179, 182, 185, 187, 190, 193, 195, 198, 201, 203, 206, 208, 210, 213, 215
+.byte 217, 219, 222, 224, 226, 228, 230, 231, 233, 235, 236, 238, 240, 241, 242, 244, 245, 246, 247, 248, 249, 250, 251, 251, 252, 253, 253, 254, 254, 254, 254, 254
+.byte 254, 254, 254, 254, 254, 254, 253, 253, 252, 251, 251, 250, 249, 248, 247, 246, 245, 244, 242, 241, 240, 238, 236, 235, 233, 231, 230, 228, 226, 224, 222, 219
+.byte 217, 215, 213, 210, 208, 206, 203, 201, 198, 195, 193, 190, 187, 185, 182, 179, 176, 173, 170, 167, 164, 161, 158, 155, 152, 149, 146, 143, 140, 137, 134, 131
+.byte 128, 124, 121, 118, 115, 112, 109, 106, 103, 100, 097, 094, 091, 088, 085, 082, 079, 076, 073, 070, 068, 065, 062, 060, 057, 054, 052, 049, 047, 045, 042, 040
+.byte 038, 036, 033, 031, 029, 027, 025, 024, 022, 020, 019, 017, 015, 014, 013, 011, 010, 009, 008, 007, 006, 005, 004, 004, 003, 002, 002, 001, 001, 001, 001, 001
+.byte 001, 001, 001, 001, 001, 001, 002, 002, 003, 004, 004, 005, 006, 007, 008, 009, 010, 011, 013, 014, 015, 017, 019, 020, 022, 024, 025, 027, 029, 031, 033, 036
+.byte 038, 040, 042, 045, 047, 049, 052, 054, 057, 060, 062, 065, 068, 070, 073, 076, 079, 082, 085, 088, 091, 094, 097, 100, 103, 106, 109, 112, 115, 118, 121, 124
+.byte 128, 131, 134, 137, 140, 143, 146, 149, 152, 155, 158, 161, 164, 167, 170, 173, 176, 179, 182, 185, 187, 190, 193, 195, 198, 201, 203, 206, 208, 210, 213, 215
+.byte 217, 219, 222, 224, 226, 228, 230, 231, 233, 235, 236, 238, 240, 241, 242, 244, 245, 246, 247, 248, 249, 250, 251, 251, 252, 253, 253, 254, 254, 254, 254, 254
+.byte 254, 254, 254, 254, 254, 254, 253, 253, 252, 251, 251, 250, 249, 248, 247, 246, 245, 244, 242, 241, 240, 238, 236, 235, 233, 231, 230, 228, 226, 224, 222, 219
+.byte 217, 215, 213, 210, 208, 206, 203, 201, 198, 195, 193, 190, 187, 185, 182, 179, 176, 173, 170, 167, 164, 161, 158, 155, 152, 149, 146, 143, 140, 137, 134, 131
+.byte 128, 124, 121, 118, 115, 112, 109, 106, 103, 100, 097, 094, 091, 088, 085, 082, 079, 076, 073, 070, 068, 065, 062, 060, 057, 054, 052, 049, 047, 045, 042, 040
+.byte 038, 036, 033, 031, 029, 027, 025, 024, 022, 020, 019, 017, 015, 014, 013, 011, 010, 009, 008, 007, 006, 005, 004, 004, 003, 002, 002, 001, 001, 001, 001, 001
+
 sprptrs
 	.byte <(sprites/64)
 	.byte >(sprites/64)
@@ -1042,7 +1137,7 @@ ledstream
 .endmacro
 
 .macro SNARE1
-	.byte $f0, $f0, $f0, $f0, $f0, $f0, $f0, $f0, $f0, $f0, $f0, $f0, $f0, $f0, $f0, $f0, $f0, $f0, $f0, $f0, $f0, $f0, $f0, $f0, $f0, $f0
+	.byte $f0, $f0, $00, $00, $f0, $f0, $00, $00, $f0, $f0, $00, $00, $f0, $f0, $00, $00, $f0, $f0, $00, $00, $f0, $f0, $00, $00, $00, $00
 .endmacro
 
 .macro DRUMPATTERN0
@@ -1255,5 +1350,7 @@ ledstream
 	DRUMOCTAVE2
 	DRUMOCTAVE7
 
-	DRUMOCTAVEEND
-	DRUMOCTAVEEND
+	.byte $aa
+
+	;DRUMOCTAVEEND
+	;DRUMOCTAVEEND

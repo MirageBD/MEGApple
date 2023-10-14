@@ -66,14 +66,14 @@ mpPlaySample
 		lda #$00
 		sta $d726,x										; CHXFREQM    Audio DMA channel X frequency MSB
 
-		lda mpVolume									; set volume
-		sta $d729,x										; CHXVOLUME
-
 		lda #%10000000									; enable audio DMA
 		sta $d711										; D711                      AUDEN BLKD AUDWRBLK NOMIX – AUDBLKTO
 
 		lda #%11000010									; play DMA (CHXEN)  with loop enabled (CHXLOOP), 8 bit samples (CHXSBITS) (11=16, 10=8, 01=upper nybl, 00=lower nybl)
 		sta $d720,x										; D720      CHXEN CHXLOOP CHXSGN CHXSINE CHXSTP – CHXSBITS
+
+		lda mpVolume									; set volume
+		sta $d729,x										; CHXVOLUME
 
 		rts
 
