@@ -5,6 +5,7 @@
 .define rbRingBufferSize							$0800
 .define rbSliceSize									$0400
 .define rbBaseMem									$050000
+.define sampleSize									$49a000 ; used to silence music when sample is finished
 
 ; ----------------------------------------------------------------------------------------------------
 
@@ -225,6 +226,21 @@ rbFetchNextSlice
 
 		jsr doDMA
 
+		; HACK FOR NEW BOARD RELEASE WITH STUPID SLOW SD-CARD
+
+		lda rbDMAsrc1+0
+		cmp #<.loword(sampleSize)
+		bne endhack
+		lda rbDMAsrc1+1
+		cmp #>.loword(sampleSize)
+		bne endhack
+		lda rbDMAsrc1+2
+		cmp #<.hiword(sampleSize)
+		bne endhack
+
+		jsr mpSilence
+
+endhack
 		rts
 
 ; ----------------------------------------------------------------------------------------------------

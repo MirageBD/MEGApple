@@ -599,6 +599,7 @@ irq1
 		sta endofframes
 		sta framelo
 		sta framehi
+		jsr mpInit
 :
 		lda #$34
 		sta $01
@@ -729,11 +730,9 @@ endirq
 :		
 		lda framehi
 		cmp #>(2*6550)
-		;cmp #>(2*200)
 		bne irqfinalize
 		lda framelo
 		cmp #<(2*6550)
-		;cmp #<(2*200)
 		bne irqfinalize
 
 		; --------------------------------------------

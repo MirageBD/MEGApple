@@ -10,6 +10,19 @@ mpInit
 
 		lda #$40
 		sta mpVolume
+		sta $d729+0*16
+		sta $d729+1*16
+		sta $d729+2*16
+		sta $d729+3*16
+		rts
+
+mpSilence
+		lda #$00
+		sta mpVolume
+		sta $d729+0*16
+		sta $d729+1*16
+		sta $d729+2*16
+		sta $d729+3*16
 		rts
 
 mpUpdateVolume
